@@ -1,0 +1,43 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+    template: 3scalefuseamq-pipeline
+metadata:
+  annotations:
+    description: RHTE Deployment Pipeline
+  name: 3scalefuseamq-pipeline
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      name: 3scalefuseamq-pipeline
+    name: 3scalefuseamq-pipeline
+  spec:
+    output: null
+    postCommit: null
+    resources: null
+    runPolicy: Serial
+    source:
+      type: None
+    source:
+      git:
+        uri: ${GIT_REPO}
+        ref: ${GIT_BRANCH}
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: Jenkinsfile
+        env:
+        - name: GIT_BRANCH
+          value: ${GIT_BRANCH}
+        - name: GIT_REPO
+          value: ${GIT_REPO}
+parameters:
+- name: GIT_REPO
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+  required: true
+- name: GIT_BRANCH
+  value: master
+  required: true
+
