@@ -12,6 +12,10 @@ pipeline {
                 echo 'Building..'
                 sh '''  
                     ls -last 
+
+                    cd fisuser-service
+
+                    mvn package
                 '''
             }
         }
