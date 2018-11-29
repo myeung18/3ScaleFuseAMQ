@@ -1,18 +1,18 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 labels:
-    template: 3scalefuseamq-pipeline
+    template: Integration-pipeline
 metadata:
   annotations:
     description: RHTE Deployment Pipeline
-  name: 3scalefuseamq-pipeline
+  name: Integration-pipeline
 objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
-      name: 3scalefuseamq-pipeline
-    name: 3scalefuseamq-pipeline
+    name: Integration-pipeline
+    name: Integration-pipeline
   spec:
     output: null
     postCommit: null

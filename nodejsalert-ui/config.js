@@ -5,7 +5,7 @@ development: {
     database: {
         host:   'localhost',
         user:   'root',
-        password: 'Hameed@123',
+        password: 'ncPIGN8cKa5Aki4c',
         database: 'sampledb'
     },
     //3scale details
@@ -20,8 +20,8 @@ production: {
     //mongodb connection settings
     database: {
         host:   'mysql',
-        user:   'dbuser',
-        password: 'password',
+        user:   'root',
+        password: 'ncPIGN8cKa5Aki4c',
         database: 'sampledb'
     },
 
