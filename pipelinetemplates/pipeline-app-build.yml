@@ -1,18 +1,18 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 labels:
-    template: Integration-pipeline
+    template: integration-pipeline
 metadata:
   annotations:
     description: RHTE Deployment Pipeline
-  name: Integration-pipeline
+  name: integration-pipeline
 objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
-    name: Integration-pipeline
-    name: Integration-pipeline
+    name: integration-pipeline
+    name: integration-pipeline
   spec:
     output: null
     postCommit: null
