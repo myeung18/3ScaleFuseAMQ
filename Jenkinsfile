@@ -8,6 +8,10 @@ pipeline {
         jdk 'jdk1.8.0'
         oc 'oc'
     }
+    environment { 
+        openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
+        openShiftToken = 'iLJqUd4yHDwpn_kZigpNi-QwNSCC9H-IOYZJQ_b0oPo'
+    }
     stages {
         stage ("source") {
             steps {
@@ -58,22 +62,17 @@ pipeline {
             }
         }
         stage('Build UI') {
+            environment { 
+                serviceName = 'nodejsalert-ui'
+            }
             steps {
                 echo 'Building..'
                 sh '''  
                     ls -last 
-
-                    cd nodejsalert-ui
-
-                    oc login https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443 --token=WddnuYe5y7_7CslKND9tWdS2vn6CRLR5eRu5OlOrITI 
-                    
-                    oc project justfortesting                    
-
-                    export PATH=$PATH:/usr/local/bin 
-                        
-                    npm install && npm run openshift
-                    
                 '''
+                script {
+                    osUtil.cmdNpmDeploy()
+                }
             }
         }
         stage('Test') {
