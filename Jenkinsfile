@@ -3,11 +3,6 @@ def osUtil = new com.openshift.global.util.DeployUtils()
 
 pipeline {
     agent any
-    tools {
-        maven 'maven-3'
-        jdk 'jdk1.8.0'
-        oc 'oc'
-    }
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = 'iLJqUd4yHDwpn_kZigpNi-QwNSCC9H-IOYZJQ_b0oPo'
