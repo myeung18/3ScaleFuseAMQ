@@ -101,12 +101,14 @@ pipeline {
                 sh '''
 
                 '''
-                tagImage('Testing')
-                openshiftTag(namespace: 'justfortesting',
+                tagImage('justfortesting','maingateway-service', 'latest','promoteTEST')
+                /* openshiftTag(namespace: 'justfortesting',
                           srcStream: 'maingateway-service',
                           srcTag: 'latest',
                           destStream: 'maingateway-service',
                           destTag: 'promoteTEST')
+
+                */
                 echo 'Testing..'
             }
         }
@@ -121,8 +123,14 @@ pipeline {
     }
 }
 
-def tagImage (param1) {
+def tagImage (projName, svcName, srcTag, destTag) {
    echo  "hello method out   ${param1} "
+      openshiftTag(namespace: ${projName},
+                  srcStream: ${svcName},
+                  srcTag: ${srcTag},
+                  destStream: ${svcName},
+                  destTag: ${destTag})
+
     sh '''
        echo  "hello method   ${param1} "
 
