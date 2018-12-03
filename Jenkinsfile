@@ -79,8 +79,10 @@ pipeline {
                     ls -last 
                 '''
 
-                script {
-                    osUtil.cmdNpmDeploy()
+                node ('nodejs') {
+                    script {
+                        osUtil.cmdNpmDeploy()
+                    }
                 } 
             }
         }
