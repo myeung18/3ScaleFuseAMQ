@@ -2,11 +2,14 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
+    agent any
+    /* 
     agent {
         node {
             label 'maven'
         }
     }
+    */
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = '_km-0ze-iwrZ-AxuljO9HYB5NBkEYOcpR07oWs-Hh2c'
@@ -80,6 +83,8 @@ pipeline {
                 '''
 
                 node ('nodejs') {
+                    git "https://github.com/myeung18/3ScaleFuseAMQ" 
+ 
                     script {
                         osUtil.cmdNpmDeploy()
                     }
