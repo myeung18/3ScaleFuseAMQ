@@ -2,11 +2,12 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
-    agent {
+    agent any
+    /* agent {
         node {
             label 'maven'
         }
-    } 
+    } */
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = '_km-0ze-iwrZ-AxuljO9HYB5NBkEYOcpR07oWs-Hh2c'
@@ -36,6 +37,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
+                    oc login https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443 --token=_km-0ze-iwrZ-AxuljO9HYB5NBkEYOcpR07oWs-Hh2c --insecure-skip-tls-verify 
                     oc create dc maingateway-service --image= docker-registry.default.svc:5000/justfortesting/maingateway-service:promoteTest 
                     oc deploy maingateway-service --cancel
 
