@@ -17,7 +17,7 @@ pipeline {
                 git 'https://github.com/myeung18/3ScaleFuseAMQ'
             }
         }
-        stage('Build and pushing to Dev') {
+        stage('Build maingateway-service') {
             environment { 
                 serviceName = 'maingateway-service'
             }
@@ -32,7 +32,7 @@ pipeline {
                 } 
             }
         }
-        stage('Build and pushing to Dev') {
+        stage('Build fisuer-service') {
             environment { 
                 serviceName = 'fisuser-service'
             }
