@@ -124,7 +124,7 @@ pipeline {
 }
 
 def tagImage (projName, svcName, srcTag, destTag) {
-   echo  "hello method out   ${param1} "
+   echo  "hello method out   ${projName} "
       openshiftTag(namespace: ${projName},
                   srcStream: ${svcName},
                   srcTag: ${srcTag},
