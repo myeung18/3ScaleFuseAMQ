@@ -20,7 +20,7 @@ pipeline {
         stage('Build maingateway-service') {
             environment { 
                 serviceName = 'maingateway-service'
-                projectName = "justfortesting'
+                projectName = 'justfortesting'
             }
             steps {
                 echo 'Building..'
@@ -36,7 +36,7 @@ pipeline {
         stage('Build fisuser-service') {
             environment { 
                 serviceName = 'fisuser-service'
-                projectName = "justfortesting'
+                projectName = 'justfortesting'
             }
             steps {
                 echo 'Building..'
@@ -52,7 +52,7 @@ pipeline {
         stage('Build fisalert-service') {
             environment { 
                 serviceName = 'fisalert-service'
-                projectName = "justfortesting'
+                projectName = 'justfortesting'
             }
             steps {
                 echo 'Building..'
@@ -68,7 +68,7 @@ pipeline {
         stage('Build nodejsalert-ui') {
             environment { 
                 serviceName = 'nodejsalert-ui'
-                projectName = "justfortesting'
+                projectName = 'justfortesting'
             }
             steps {
                 echo 'Building..'
