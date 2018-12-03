@@ -2,11 +2,10 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
-    agent any
-    tools {
-        maven 'maven-3'
-        jdk 'jdk1.8.0'
-        oc 'oc'
+    agent {
+        node {
+            label 'maven'
+        }
     } 
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
@@ -29,49 +28,6 @@ pipeline {
                 '''
                 script {
                     osUtil.cmdDeploy()
-                }
-            }
-        }
-        stage('Build fisuser') {
-            environment { 
-                serviceName = 'fisuser-service'
-            }
-            steps {
-                echo 'Building..'
-                sh '''  
-                    ls -last 
-                '''
-                
-                script {
-                    osUtil.cmdDeploy()
-                }
-            }
-        }
-         stage('Build fisalert') {
-            environment { 
-                serviceName = 'fisalert-service'
-            }
-            steps {
-                echo 'Building..'
-                sh '''  
-                    ls -last 
-                '''
-                script {
-                    osUtil.cmdDeploy()
-                }
-            }
-        }
-        stage('Build UI') {
-            environment { 
-                serviceName = 'nodejsalert-ui'
-            }
-            steps {
-                echo 'Building..'
-                sh '''  
-                    ls -last 
-                '''
-                script {
-                    osUtil.cmdNpmDeploy()
                 }
             }
         }
