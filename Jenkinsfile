@@ -28,9 +28,10 @@ pipeline {
                     ls -last 
                 '''
                  
-                script {
-                    //osUtil.cmdDeploy()
+               /* script {
+                    osUtil.cmdDeploy()
                 } 
+                */ 
             }
         }
         stage('Build fisuser-service') {
@@ -43,10 +44,11 @@ pipeline {
                 sh '''  
                     ls -last 
                 '''
-                 
+                /* 
                 script {
-                    //osUtil.cmdDeploy()
+                    osUtil.cmdDeploy()
                 } 
+                */
             }
         }
         stage('Build fisalert-service') {
@@ -59,10 +61,11 @@ pipeline {
                 sh '''  
                     ls -last 
                 '''
-                 
+                /* 
                 script {
-                    //osUtil.cmdDeploy()
+                    osUtil.cmdDeploy()
                 } 
+                */
             }
         }
         stage('Build nodejsalert-ui') {
@@ -75,7 +78,7 @@ pipeline {
                 sh '''  
                     ls -last 
                 '''
-                 
+
                 script {
                     osUtil.cmdNpmDeploy()
                 } 
