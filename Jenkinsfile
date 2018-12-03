@@ -40,10 +40,10 @@ pipeline {
 
                 '''
               openshiftTag(namespace: 'justfortesting',
-                      sourceStream: 'maingateway-service',
-                      sourceTag: 'latest',
-                      destinationStream: 'maingateway-service',
-                      destinationTag: 'promoteXX')
+                      srcStream: 'maingateway-service',
+                      srcTag: 'latest',
+                      destStream: 'maingateway-service',
+                      destTag: 'promoteXX')
                 echo 'Testing..'
             }
         }
