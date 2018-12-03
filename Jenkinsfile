@@ -82,6 +82,7 @@ pipeline {
                     ls -last 
                 '''
 
+                /*
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
  
@@ -89,18 +90,23 @@ pipeline {
                         osUtil.cmdNpmDeploy()
                     }
                 } 
+                */
             }
         }
         stage('Pushing to Test') {
+            environment {
+                projectName = 'rh-testing'
+            }
             steps {
                 sh '''
 
                 '''
-              openshiftTag(namespace: 'justfortesting',
-                      srcStream: 'maingateway-service',
-                      srcTag: 'latest',
-                      destStream: 'maingateway-service',
-                      destTag: 'promotePRD')
+                tagImage('Testing')
+                openshiftTag(namespace: 'justfortesting',
+                          srcStream: 'maingateway-service',
+                          srcTag: 'latest',
+                          destStream: 'maingateway-service',
+                          destTag: 'promoteTEST')
                 echo 'Testing..'
             }
         }
@@ -113,4 +119,12 @@ pipeline {
             }
         }
     }
+}
+
+def tagImage (param1) {
+    sh '''
+        hello method   ${param1}
+
+      '''
+
 }
