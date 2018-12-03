@@ -26,13 +26,20 @@ pipeline {
                 sh '''  
                     ls -last 
                 '''
+                /* 
                 script {
                     osUtil.cmdDeploy()
-                }
+                } 
+                */
             }
         }
         stage('Test') {
             steps {
+                sh '''
+                    oc create dc maingateway-service --image= docker-registry.default.svc:5000/justfortesting/maingateway-service:promoteTest 
+                    oc deploy maingateway-service --cancel
+
+                '''
                 echo 'Testing..'
             }
         }
