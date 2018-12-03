@@ -123,7 +123,7 @@ pipeline {
 
 def tagImage (param1) {
     sh '''
-       echo  "hello method   ${param1} "
+       echo  "hello method   $param1 "
 
       '''
 
