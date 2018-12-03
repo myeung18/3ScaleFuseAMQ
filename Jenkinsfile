@@ -20,6 +20,7 @@ pipeline {
         stage('Build maingateway-service') {
             environment { 
                 serviceName = 'maingateway-service'
+                projectName = "justfortesting'
             }
             steps {
                 echo 'Building..'
@@ -28,13 +29,14 @@ pipeline {
                 '''
                  
                 script {
-                    osUtil.cmdDeploy()
+                    //osUtil.cmdDeploy()
                 } 
             }
         }
-        stage('Build fisuer-service') {
+        stage('Build fisuser-service') {
             environment { 
                 serviceName = 'fisuser-service'
+                projectName = "justfortesting'
             }
             steps {
                 echo 'Building..'
@@ -43,7 +45,39 @@ pipeline {
                 '''
                  
                 script {
-                    osUtil.cmdDeploy()
+                    //osUtil.cmdDeploy()
+                } 
+            }
+        }
+        stage('Build fisalert-service') {
+            environment { 
+                serviceName = 'fisalert-service'
+                projectName = "justfortesting'
+            }
+            steps {
+                echo 'Building..'
+                sh '''  
+                    ls -last 
+                '''
+                 
+                script {
+                    //osUtil.cmdDeploy()
+                } 
+            }
+        }
+        stage('Build nodejsalert-ui') {
+            environment { 
+                serviceName = 'nodejsalert-ui'
+                projectName = "justfortesting'
+            }
+            steps {
+                echo 'Building..'
+                sh '''  
+                    ls -last 
+                '''
+                 
+                script {
+                    osUtil.cmdNpmDeploy()
                 } 
             }
         }
