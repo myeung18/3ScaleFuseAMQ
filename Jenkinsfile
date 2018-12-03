@@ -10,7 +10,7 @@ pipeline {
     } 
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
-        openShiftToken = 'iLJqUd4yHDwpn_kZigpNi-QwNSCC9H-IOYZJQ_b0oPo'
+        openShiftToken = '_km-0ze-iwrZ-AxuljO9HYB5NBkEYOcpR07oWs-Hh2c'
     }
     stages {
         stage ("source") {
