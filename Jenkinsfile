@@ -2,12 +2,11 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
-    agent any
-    /* agent {
+    agent {
         node {
             label 'maven'
         }
-    } */
+    }
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = '_km-0ze-iwrZ-AxuljO9HYB5NBkEYOcpR07oWs-Hh2c'
@@ -18,7 +17,7 @@ pipeline {
                 git 'https://github.com/myeung18/3ScaleFuseAMQ'
             }
         }
-        stage('Build Gateway') {
+        stage('Build and pushing to Dev') {
             environment { 
                 serviceName = 'maingateway-service'
             }
@@ -27,14 +26,28 @@ pipeline {
                 sh '''  
                     ls -last 
                 '''
-                /* 
+                 
                 script {
                     osUtil.cmdDeploy()
                 } 
-                */
             }
         }
-        stage('Test') {
+        stage('Build and pushing to Dev') {
+            environment { 
+                serviceName = 'fisuser-service'
+            }
+            steps {
+                echo 'Building..'
+                sh '''  
+                    ls -last 
+                '''
+                 
+                script {
+                    osUtil.cmdDeploy()
+                } 
+            }
+        }
+        stage('Pushing to Test') {
             steps {
                 sh '''
 
@@ -43,13 +56,16 @@ pipeline {
                       srcStream: 'maingateway-service',
                       srcTag: 'latest',
                       destStream: 'maingateway-service',
-                      destTag: 'promoteXX')
+                      destTag: 'promotePRD')
                 echo 'Testing..'
             }
         }
-        stage('Pushing to UAT') {
+        stage('Pushing to Prod') {
             steps {
-                echo 'Deploying....'
+              timeout(time: 2, unit: 'DAYS') {
+                  input message: 'Approve to production?'
+            }
+            echo 'Deploying....'
             }
         }
     }
