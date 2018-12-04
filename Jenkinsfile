@@ -26,9 +26,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-
                 build(env.serviceName)
-                deploy(env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+
+                echo "Deploying ${serviceName} to ${projectName}"
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
@@ -135,8 +136,10 @@ def build(folderName) {
     """
 
 }
-def deploy(projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
+def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
     sh """
+    cd ${folderName}
+
     oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify
     oc project ${projName} 
 
