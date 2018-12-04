@@ -2,11 +2,14 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
+    agent any
+    /*
     agent {
         node {
             label 'maven'
         }
     }
+    */
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = 'mTREpHpIp2NUucoR75dyuhmf1aM_gx2af2kLR0C1A94'
@@ -26,10 +29,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                build(env.serviceName)
+               // build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+               //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
@@ -39,16 +42,12 @@ pipeline {
                 projectName = 'justfortesting'
             }
             steps {
-                echo 'Building..'
-                sh '''  
-                    ls -last 
-                '''
-                /* 
-                script {
-                    osUtil.cmdDeploy()
-                } 
-                */
-            }
+                echo "Building.. ${serviceName} "
+               // build(env.serviceName)
+
+                echo "Deploying ${serviceName} to ${projectName}"
+               //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+           }
         }
         stage('Build fisalert-service') {
             environment { 
@@ -56,15 +55,11 @@ pipeline {
                 projectName = 'justfortesting'
             }
             steps {
-                echo 'Building..'
-                sh '''  
-                    ls -last 
-                '''
-                /* 
-                script {
-                    osUtil.cmdDeploy()
-                } 
-                */
+                echo "Building.. ${serviceName} "
+               // build(env.serviceName)
+
+                echo "Deploying ${serviceName} to ${projectName}"
+               //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
             }
         }
         stage('Build nodejsalert-ui') {
@@ -73,20 +68,25 @@ pipeline {
                 projectName = 'justfortesting'
             }
             steps {
-                echo 'Building..'
+                echo 'Building.. ${serviceName}'
                 sh '''  
                     ls -last 
                 '''
 
-                /*
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
  
                     script {
-                        osUtil.cmdNpmDeploy()
+                        sh """
+                        cd ${serviceName}
+
+                        oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
+                        oc project ${projectName}
+
+                        npm install && npm run openshift
+                        """
                     }
                 } 
-                */
             }
         }
         stage('Pushing to Test') {
