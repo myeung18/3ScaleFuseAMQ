@@ -37,10 +37,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-               // build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-               //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
            }
         }
         stage('Build fisalert-service') {
@@ -50,10 +50,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-               // build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-               //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
             }
         }
         stage('Build nodejsalert-ui') {
@@ -67,7 +67,7 @@ pipeline {
                     ls -last 
                 '''
 
-                /*
+                *
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
  
@@ -82,7 +82,6 @@ pipeline {
                         """
                     }
                 } 
-                */
             }
         }
         stage('Pushing to Test') {
@@ -101,8 +100,17 @@ pipeline {
                 ''' 
 
                 echo "Deployment to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
-                promoteService(env.imageNameSpace, env.projectName, env.serviceName, env.srcTag, env.destTag)
+                promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+
+                promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, 'fisuser-service', env.srcTag, env.destTag)
+
+                promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, 'fisalert-service', env.srcTag, env.destTag)
+
+                promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Prod') {
