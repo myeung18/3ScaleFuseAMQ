@@ -95,19 +95,14 @@ pipeline {
             environment {
                 projectName = 'rh-testing'
                 imageNameSpace = 'justfortesting'
+                srcTag = 'latest'
+                destTag = 'promoteTest'
+                serviceName = 'maingateway-service'
             }
             steps {
-                sh """ 
-                    oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
-                    oc create dc maingateway-service --image=docker-registry.default.svc:5000/${imageNameSpace}/maingateway-service:promoteTest -n ${projectName} 
-                    oc deploy maingateway-service --cancel -n ${projectName}
-                    oc expose dc maingateway-service --port=8080 -n ${projectName}
-                    oc expose svc maingateway-service --name=maingateway-service -n ${projectName}
-                     
-                """
-                promoteService(env.imageNameSpace, env.projectName, 'maingateway-service', 'latest','promoteTest')
-
-                echo 'Testing..'
+                echo "Deployment to ${projectName} "
+                promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, env.serviceName, env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Prod') {
@@ -121,6 +116,17 @@ pipeline {
     }
 }
 
+def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
+    sh """ 
+        oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
+        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
+        oc deploy ${svcName} --cancel -n ${projName}
+        oc expose dc ${svcName} --port=8080 -n ${projName}
+        oc expose svc ${svcName} --name=${svcName} -n ${projName}
+         
+    """
+
+}
 def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
     echo  "hello method out   ${projName} "
     openshiftTag(namespace: imageNamespace,
