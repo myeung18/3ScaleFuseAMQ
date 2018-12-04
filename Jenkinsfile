@@ -67,7 +67,6 @@ pipeline {
                     ls -last 
                 '''
 
-                *
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
  
