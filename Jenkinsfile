@@ -26,7 +26,6 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
                 deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
@@ -139,6 +138,7 @@ def build(folderName) {
 def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
     sh """
     cd ${folderName}
+    mvn package -Dmaven.test.skip=true 
 
     oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify
     oc project ${projName} 
