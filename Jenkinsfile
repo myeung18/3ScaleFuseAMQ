@@ -126,7 +126,7 @@ def tagImage (projName, svcName, sourceTag, destinationTag) {
 
 }
 
-def build(folderName {
+def build(folderName) {
     sh """
 
     cd ${folderName}
@@ -135,7 +135,7 @@ def build(folderName {
     """
 
 }
-def deploy(projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd)
+def deploy(projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
     sh """
     oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify
     oc project ${projName} 
