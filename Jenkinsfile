@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo "Building.. ${serviceName} "
 
-                bulid(env.serviceName)
+                build(env.serviceName)
                 deploy(env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
