@@ -2,17 +2,14 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
-    agent any
-    /* 
     agent {
         node {
             label 'maven'
         }
     }
-    */
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
-        openShiftToken = '_km-0ze-iwrZ-AxuljO9HYB5NBkEYOcpR07oWs-Hh2c'
+        openShiftToken = 'mTREpHpIp2NUucoR75dyuhmf1aM_gx2af2kLR0C1A94'
     }
     stages {
         stage ("source") {
@@ -28,9 +25,13 @@ pipeline {
             steps {
                 echo 'Building..'
                 sh '''  
-                    ls -last 
+                ls -last 
+
+                cd $serviceName
+        
+                mvn package -Dmaven.test.skip=true 
+
                 '''
-                 
                /* script {
                     osUtil.cmdDeploy()
                 } 
@@ -102,13 +103,6 @@ pipeline {
 
                 '''
                 tagImage('justfortesting','maingateway-service', 'latest','promoteTEST')
-                /* openshiftTag(namespace: 'justfortesting',
-                          srcStream: 'maingateway-service',
-                          srcTag: 'latest',
-                          destStream: 'maingateway-service',
-                          destTag: 'promoteTEST')
-
-                */
                 echo 'Testing..'
             }
         }
