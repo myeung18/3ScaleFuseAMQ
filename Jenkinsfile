@@ -1,6 +1,3 @@
-@Library('cicdutils@master') 
-def osUtil = new com.openshift.global.util.DeployUtils() 
-
 pipeline {
     agent {
         node {
