@@ -105,7 +105,7 @@ pipeline {
                     oc expose svc maingateway-service --name=maingateway-service -n ${projectName}
                      
                 """
-                promoteService(env.projectName, 'maingateway-service', 'latest','promoteTest')
+                promoteService(env.imageNameSpace, env.projectName, 'maingateway-service', 'latest','promoteTest')
 
                 echo 'Testing..'
             }
@@ -121,9 +121,9 @@ pipeline {
     }
 }
 
-def promoteService (projName, svcName, sourceTag, destinationTag) {
+def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
     echo  "hello method out   ${projName} "
-    openshiftTag(namespace: projName,
+    openshiftTag(namespace: imageNamespace,
                   srcStream: svcName,
                   srcTag: sourceTag,
                   destStream: svcName,
