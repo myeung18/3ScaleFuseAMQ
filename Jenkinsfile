@@ -2,14 +2,11 @@
 def osUtil = new com.openshift.global.util.DeployUtils() 
 
 pipeline {
-    agent any
-    /*
     agent {
         node {
             label 'maven'
         }
     }
-    */
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = 'mTREpHpIp2NUucoR75dyuhmf1aM_gx2af2kLR0C1A94'
@@ -25,21 +22,21 @@ pipeline {
         stage('Build maingateway-service') {
             environment { 
                 serviceName = 'maingateway-service'
-                projectName = 'justfortesting'
+                projectName = 'rh-dev'
             }
             steps {
                 echo "Building.. ${serviceName} "
-               // build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-               //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
         stage('Build fisuser-service') {
             environment { 
                 serviceName = 'fisuser-service'
-                projectName = 'justfortesting'
+                projectName = 'rh-dev'
             }
             steps {
                 echo "Building.. ${serviceName} "
@@ -52,7 +49,7 @@ pipeline {
         stage('Build fisalert-service') {
             environment { 
                 serviceName = 'fisalert-service'
-                projectName = 'justfortesting'
+                projectName = 'rh-dev'
             }
             steps {
                 echo "Building.. ${serviceName} "
@@ -65,7 +62,7 @@ pipeline {
         stage('Build nodejsalert-ui') {
             environment { 
                 serviceName = 'nodejsalert-ui'
-                projectName = 'justfortesting'
+                projectName = 'rh-dev'
             }
             steps {
                 echo 'Building.. ${serviceName}'
@@ -94,14 +91,14 @@ pipeline {
         stage('Pushing to Test') {
             environment {
                 projectName = 'rh-testing'
-                imageNameSpace = 'justfortesting'
+                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteTest'
                 serviceName = 'maingateway-service'
             }
             steps {
-                timeout(time: 5, unit: 'SECONDS') {
-                    echo  "Testing should be done."
+                timeout(time: 15, unit: 'SECONDS') {
+                    input message: 'Are the testing done ?'
                 }
 
                 echo "Deployment to ${projectName} "
@@ -112,7 +109,7 @@ pipeline {
         stage('Pushing to Prod') {
             environment {
                 projectName = 'rh-prod'
-                imageNameSpace = 'justfortesting'
+                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteProd'
                 serviceName = 'maingateway-service'
