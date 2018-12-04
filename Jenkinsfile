@@ -100,17 +100,30 @@ pipeline {
                 serviceName = 'maingateway-service'
             }
             steps {
+                timeout(time: 5, unit: 'SECONDS')
+
                 echo "Deployment to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, env.serviceName, env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Prod') {
-            steps {
-              timeout(time: 2, unit: 'DAYS') {
-                  input message: 'Approve to production?'
+            environment {
+                projectName = 'rh-prod'
+                imageNameSpace = 'justfortesting'
+                srcTag = 'latest'
+                destTag = 'promoteProd'
+                serviceName = 'maingateway-service'
             }
-            echo 'Deploying....'
+            steps {
+                timeout(time: 2, unit: 'DAYS') {
+                  input message: 'Approve to production?'
+                }
+                echo 'Deploying....${projectName} '
+                
+                promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, env.serviceName, env.srcTag, env.destTag)
+
             }
         }
     }
