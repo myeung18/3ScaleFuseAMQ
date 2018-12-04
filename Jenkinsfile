@@ -73,6 +73,7 @@ pipeline {
                     ls -last 
                 '''
 
+                /*
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
  
@@ -87,17 +88,24 @@ pipeline {
                         """
                     }
                 } 
+                */
             }
         }
         stage('Pushing to Test') {
             environment {
                 projectName = 'rh-testing'
+                imageNameSpace = 'justfortesting'
             }
             steps {
-                sh '''
+                sh """ 
+                    oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
+                    oc create dc maingateway-service --image=docker-registry.default.svc:5000/${imageNameSpace}/maingateway-service:promoteTest -n rh-testing 
+                    oc deploy maingateway-service --cancel -n rh-testing
+                     
+                """
 
-                '''
-                tagImage('justfortesting','maingateway-service', 'latest','promoteTEST')
+                tagImage('justfortesting','maingateway-service', 'latest','promoteTest')
+
                 echo 'Testing..'
             }
         }
