@@ -10,6 +10,8 @@ pipeline {
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = 'mTREpHpIp2NUucoR75dyuhmf1aM_gx2af2kLR0C1A94'
+        mySqlUser = 'root'
+        mySqlPwd = 'ncPIGN8cKa5Aki4c'
     }
     stages {
         stage ("source") {
@@ -23,19 +25,11 @@ pipeline {
                 projectName = 'justfortesting'
             }
             steps {
-                echo 'Building..'
-                sh '''  
-                ls -last 
+                echo "Building.. ${serviceName} "
 
-                cd $serviceName
-        
-                mvn package -Dmaven.test.skip=true 
+                bulid(env.serviceName)
+                deploy(env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
-                '''
-               /* script {
-                    osUtil.cmdDeploy()
-                } 
-                */ 
             }
         }
         stage('Build fisuser-service') {
@@ -130,4 +124,22 @@ def tagImage (projName, svcName, sourceTag, destinationTag) {
 
       '''
 
+}
+
+def build(folderName {
+    sh """
+
+    cd ${folderName}
+    
+    mvn package -Dmaven.test.skip=true 
+    """
+
+}
+def deploy(projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd)
+    sh """
+    oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify
+    oc project ${projName} 
+
+    mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+    """
 }
