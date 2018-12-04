@@ -94,9 +94,11 @@ pipeline {
                 serviceName = 'maingateway-service'
             }
             steps {
-                timeout(time: 15, unit: 'SECONDS') {
-                    input message: 'Are the testing done ?'
-                }
+                sh ''' 
+                    echo "Testing should be done here"
+                    sleep 5
+
+                ''' 
 
                 echo "Deployment to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
