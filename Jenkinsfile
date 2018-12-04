@@ -99,12 +99,13 @@ pipeline {
             steps {
                 sh """ 
                     oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
-                    oc create dc maingateway-service --image=docker-registry.default.svc:5000/${imageNameSpace}/maingateway-service:promoteTest -n rh-testing 
-                    oc deploy maingateway-service --cancel -n rh-testing
+                    oc create dc maingateway-service --image=docker-registry.default.svc:5000/${imageNameSpace}/maingateway-service:promoteTest -n ${projectName} 
+                    oc deploy maingateway-service --cancel -n ${projectName}
+                    oc expose dc maingateway-service --port=8080 -n ${projectName}
+                    oc expose svc maingateway-service --name=maingateway-service -n ${projectName}
                      
                 """
-
-                tagImage('justfortesting','maingateway-service', 'latest','promoteTest')
+                promoteService(env.projectName, 'maingateway-service', 'latest','promoteTest')
 
                 echo 'Testing..'
             }
@@ -120,18 +121,17 @@ pipeline {
     }
 }
 
-def tagImage (projName, svcName, sourceTag, destinationTag) {
-   echo  "hello method out   ${projName} "
-      openshiftTag(namespace: projName,
+def promoteService (projName, svcName, sourceTag, destinationTag) {
+    echo  "hello method out   ${projName} "
+    openshiftTag(namespace: projName,
                   srcStream: svcName,
                   srcTag: sourceTag,
                   destStream: svcName,
                   destTag: destinationTag)
 
-    sh '''
-       echo  "hello method   ${param1} "
-
-      '''
+    openshiftDeploy(namespace: projName,
+  			     deploymentConfig: svcName,
+			     waitTime: '300000')
 
 }
 
