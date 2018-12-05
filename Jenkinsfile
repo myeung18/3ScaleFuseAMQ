@@ -108,8 +108,8 @@ pipeline {
                 promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, 'fisalert-service', env.srcTag, env.destTag)
 
-                promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.destTag, env.projectName)    
-                promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
+                promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.imageNameSpace, env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Prod') {
@@ -127,7 +127,7 @@ pipeline {
                 echo 'Deploying....${projectName} '
                 
                 promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
-                promoteService(env.imageNameSpace, env.projectName, env.serviceName, env.srcTag, env.destTag)
+                promoteService(env.imageNameSpace, env.projectName, env.serviceName, env.imageNameSpace, env.srcTag, env.destTag)
 
             }
         }
