@@ -59,7 +59,7 @@ pipeline {
         stage('Build nodejsalert-ui') {
             environment { 
                 serviceName = 'nodejsalert-ui'
-                projectName = 'rh-testing'
+                projectName = 'rh-test'
             }
             steps {
                 echo 'Building.. ${serviceName}'
@@ -85,7 +85,7 @@ pipeline {
         }
         stage('Pushing to Test') {
             environment {
-                projectName = 'rh-testing'
+                projectName = 'rh-test'
                 imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteTest'
