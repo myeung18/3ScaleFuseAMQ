@@ -26,7 +26,7 @@ pipeline {
                 build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                jdeploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
