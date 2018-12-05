@@ -1,17 +1,14 @@
 pipeline {
-    agent any
-    /*
     agent {
         node {
             label 'maven'
         }
     }
-    */
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
         openShiftToken = 'mTREpHpIp2NUucoR75dyuhmf1aM_gx2af2kLR0C1A94'
-        mySqlUser = 'root'
-        mySqlPwd = 'ncPIGN8cKa5Aki4c'
+        mySqlUser = 'dbuser'
+        mySqlPwd = 'password'
     }
     stages {
         stage ("source") {
@@ -26,10 +23,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                //jdeploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                jdeploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
@@ -40,10 +37,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
            }
         }
         stage('Build fisalert-service') {
@@ -53,10 +50,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
             }
         }
         stage('Build nodejsalert-ui') {
@@ -101,7 +98,6 @@ pipeline {
 
                 ''' 
 
-                /*
                 echo "Deployment to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
@@ -114,7 +110,6 @@ pipeline {
 
                 promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
-                */
             }
         }
         stage('Pushing to Prod') {
