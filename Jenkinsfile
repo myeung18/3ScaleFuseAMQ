@@ -1,8 +1,17 @@
 pipeline {
+    agent any
+    /*
     agent {
         node {
             label 'maven'
         }
+    }
+    */
+    parameters{ 
+        choice (
+            choices: ['fisuser','maingateway','fisalert','ui','all'],
+            description: 'supported modules',
+            name: 'DEPLOY_MODULE')
     }
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
@@ -23,10 +32,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                build(env.serviceName)
+                //build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
@@ -37,10 +46,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                build(env.serviceName)
+                //build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
            }
         }
         stage('Build fisalert-service') {
@@ -50,10 +59,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                build(env.serviceName)
+                //build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
             }
         }
         stage('Build nodejsalert-ui') {
@@ -66,7 +75,7 @@ pipeline {
                 sh '''  
                     ls -last 
                 '''
-
+                /*
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
  
@@ -81,9 +90,10 @@ pipeline {
                         """
                     }
                 } 
+                */
             }
         }
-        stage('Pushing to Test') {
+        stage('Pushing to Test - maingateway') {
             environment {
                 projectName = 'rh-test'
                 imageNameSpace = 'rh-dev'
@@ -92,26 +102,54 @@ pipeline {
                 serviceName = 'maingateway-service'
             }
             steps {
-                sh ''' 
-                    echo "Testing should be done here"
-                    sleep 5
-
-                ''' 
-
-                echo "Deployment to ${projectName} "
+                echo "Deploy to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
-
+            }
+        }
+        stage('Pushing to Test - fisuser') {
+            environment {
+                projectName = 'rh-test'
+                imageNameSpace = 'rh-dev'
+                srcTag = 'latest'
+                destTag = 'promoteTest'
+                serviceName = 'fisuser-service'
+            }
+            steps {
+                echo "Deploy to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, 'fisuser-service', env.srcTag, env.destTag)
-
+            }
+        }
+        stage('Pushing to Test - fisalert') {
+            environment {
+                projectName = 'rh-test'
+                imageNameSpace = 'rh-dev'
+                srcTag = 'latest'
+                destTag = 'promoteTest'
+                serviceName = 'fisalert-service'
+            }
+            steps {
+                echo "Deploy to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, 'fisalert-service', env.srcTag, env.destTag)
-
+            }
+        }
+        stage('Pushing to Test - nodejsalert') {
+            environment {
+                projectName = 'rh-test'
+                imageNameSpace = 'rh-dev'
+                srcTag = 'latest'
+                destTag = 'promoteTest'
+                serviceName = 'nodejsalert-service'
+            }
+            steps {
+                echo "Deploy to ${projectName} "
                 promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
+
         stage('Pushing to Prod') {
             environment {
                 projectName = 'rh-prod'
@@ -124,11 +162,10 @@ pipeline {
                 timeout(time: 2, unit: 'DAYS') {
                   input message: 'Approve to production?'
                 }
-                echo 'Deploying....${projectName} '
+                echo 'Deploy to ${projectName} '
                 
                 promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, env.serviceName,  env.srcTag, env.destTag)
-
             }
         }
     }
