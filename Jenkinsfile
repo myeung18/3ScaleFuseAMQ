@@ -12,10 +12,12 @@ pipeline {
             choices: ['fisuser','maingateway','fisalert','ui','all'],
             description: 'supported modules',
             name: 'DEPLOY_MODULE')
+        string (defaultValue: '', name:'os_token', description:'open shift token')
+
     }
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
-        openShiftToken = 'BL4SiV5aO0WAJ35LrBlfVAqg8xDdGK9qY-8uFvAy9rY'
+        openShiftToken = '555kYTHpxkj3liEBgD6t44loUBdDx9sFi8s2yrGbXvw'
         mySqlUser = 'dbuser'
         mySqlPwd = 'password'
     }
