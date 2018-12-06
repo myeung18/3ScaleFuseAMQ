@@ -8,12 +8,8 @@ pipeline {
     }
     */
     parameters{ 
-        choice (
-            choices: ['fisuser','maingateway','fisalert','ui','all'],
-            description: 'supported modules',
-            name: 'DEPLOY_MODULE')
-        string (defaultValue: '', name:'os_token', description:'open shift token')
-
+        string (defaultValue: '', name:'OPENSHIFT_TOKEN', description:'open shift token')
+        string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
     }
     environment { 
         openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'

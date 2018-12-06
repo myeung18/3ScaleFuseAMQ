@@ -33,6 +33,10 @@ objects:
           value: ${GIT_BRANCH}
         - name: GIT_REPO
           value: ${GIT_REPO}
+        - name: OPENSHIFT_TOKEN 
+          value: ${OPENSHIFT_TOKEN}
+        - name: DEPLOY_MODULE 
+          value: ${DEPLOY_MODULE}
 parameters:
 - name: GIT_REPO
   value: https://github.com/myeung18/3ScaleFuseAMQ.git
@@ -40,4 +44,9 @@ parameters:
 - name: GIT_BRANCH
   value: master
   required: true
-
+- name: OPENSHIFT_TOKEN 
+  value: token_value 
+  required: true
+- name: DEPLOY_MODULE 
+  value: all
+  required: false
