@@ -66,13 +66,10 @@ pipeline {
         stage('Build nodejsalert-ui') {
             environment { 
                 serviceName = 'nodejsalert-ui'
-                projectName = 'rh-test'
+                projectName = 'rh-dev'
             }
             steps {
                 echo 'Building.. ${serviceName}'
-                sh '''  
-                    ls -last 
-                '''
                 /*
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
@@ -81,7 +78,6 @@ pipeline {
                         sh """
                         cd ${serviceName}
 
-                        oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
                         oc project ${projectName}
 
                         npm install && npm run openshift

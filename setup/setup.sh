@@ -4,15 +4,6 @@
 
 oc login -u $USER
 
-oc delete project $CICD_PROJECT
-oc new-project $CICD_PROJECT 2> /dev/null
-while [ $? \> 0 ]; do
-    sleep 1
-    printf "."
-    oc new-project $CICD_PROJECT 2> /dev/null
-done
-
-oc new-app jenkins-persistent
 
 oc delete project $DEV_PROJECT
 oc new-project $DEV_PROJECT 2> /dev/null
@@ -22,6 +13,7 @@ while [ $? \> 0 ]; do
     oc new-project $DEV_PROJECT 2> /dev/null
 done
 
+oc new-app jenkins-persistent
 
 echo "Setup the surrounding softwate and environment"
 echo
@@ -37,7 +29,8 @@ oc new-app --template=amq62-basic --param=MQ_USERNAME=admin --param=MQ_PASSWORD=
 
 oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:jenkins -n ${DEV_PROJECT}
 oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:default -n ${DEV_PROJECT}
-oc policy add-role-to-user view --serviceaccount=default -n ${DEV_PROJECT}
+oc policy add-role-to-user system:image-puller system:serviceaccount:${CICD_PROJECT}:default -n ${DEV_PROJECT}
+oc policy add-role-to-user view --serviceaccount=default -n ${CICD_PROJECT}
 
 oc delete project $TEST_PROJECT
 oc new-project $TEST_PROJECT 2> /dev/null
@@ -60,8 +53,9 @@ oc import-image amq62-openshift --from=registry.access.redhat.com/jboss-amq-6/am
 oc create -f projecttemplates/amq62-openshift.json
 oc new-app --template=amq62-basic --param=MQ_USERNAME=admin --param=MQ_PASSWORD=admin --param=IMAGE_STREAM_NAMESPACE=$TEST_PROJECT
 
-oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:jenkins -n ${TEST_PROJECT}
-oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:default -n ${TEST_PROJECT}
+oc policy add-role-to-user edit system:serviceaccount:${TEST_PROJECT}:jenkins -n ${DEV_PROJECT}
+oc policy add-role-to-user edit system:serviceaccount:${TEST_PROJECT}:default -n ${DEV_PROJECT}
+oc policy add-role-to-user system:image-puller system:serviceaccount:${TEST_PROJECT}:default -n ${DEV_PROJECT}
 oc policy add-role-to-user view --serviceaccount=default -n ${TEST_PROJECT}
 
 oc delete project $PROD_PROJECT

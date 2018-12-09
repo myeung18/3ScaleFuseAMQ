@@ -1,0 +1,163 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+    template: integration-pipeline-test
+metadata:
+  annotations:
+    description: RHTE Deployment Pipeline
+  name: integration-pipeline-test
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+    name: integration-pipeline-test
+    name: integration-pipeline-test
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+            pipeline {   
+              agent {
+                    node {
+                        label 'maven'
+                    }
+              }
+              environment { 
+                  openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
+                  openShiftToken = '555kYTHpxkj3liEBgD6t44loUBdDx9sFi8s2yrGbXvw'
+                  mySqlUser = 'dbuser'
+                  mySqlPwd = 'password'
+              }
+              stages{
+                  stage ("source") {
+                      steps {
+                          git 'https://github.com/myeung18/3ScaleFuseAMQ'
+                      }
+                  }
+                  stage('Build maingateway-service') {
+                      environment { 
+                          serviceName = 'maingateway-service'
+                          projectName = 'rh-dev'
+                      }
+                      steps {
+                          echo "Building.. ${serviceName} "
+                          build(env.serviceName)
+
+                          echo "Deploying ${serviceName} to ${projectName}"
+                          deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+
+                      }
+                      }
+                      stage('Build nodejsalert-ui') {
+                          environment { 
+                              serviceName = 'nodejsalert-ui'
+                              projectName = 'rh-dev'
+                          }
+                          steps {
+                              echo 'Building.. ${serviceName}'
+                              sh '''  
+                                  ls -last 
+                              '''
+                              node ('nodejs') {
+                                  git "https://github.com/myeung18/3ScaleFuseAMQ" 
+
+                                  script {
+                                      sh """
+                                      cd ${serviceName}
+
+                                      oc project ${projectName}
+                                      npm install && npm run openshift
+                                      """
+                                  }
+                              } 
+                          }
+                      }
+                      stage('Pushing to Test - nodejsalert') {
+                          environment {
+                              projectName = 'rh-test'
+                              imageNameSpace = 'rh-dev'
+                              srcTag = 'latest'
+                              destTag = 'promoteTest'
+                              serviceName = 'nodejsalert-service'
+                          }
+                          steps {
+                              echo "Deploy to ${projectName} "
+                              promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                              promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
+                          }
+                      }
+                      stage("Call OpenShift Test") {           
+                          steps { 
+                              script {
+                                  sh " oc projects " 
+                              }
+                          } 
+                      }
+                  }
+                }
+
+                def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
+                    sh """ 
+
+                        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
+                        oc deploy ${svcName} --cancel -n ${projName}
+                        oc expose dc ${svcName} --port=8080 -n ${projName}
+                        oc expose svc ${svcName} --name=${svcName} -n ${projName}
+                         
+                    """
+                }
+                def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
+                    echo  "hello method out   ${projName} "
+                    openshiftTag(namespace: imageNamespace,
+                                  srcStream: svcName,
+                                  srcTag: sourceTag,
+                                  destStream: svcName,
+                                  destTag: destinationTag)
+
+                    openshiftDeploy(namespace: projName,
+                                 deploymentConfig: svcName,
+                                 waitTime: '300000')
+                }
+
+                def build(folderName) {
+                    sh """
+
+                    cd ${folderName}
+                    
+                    mvn package -Dmaven.test.skip=true 
+                    """
+
+                }
+                def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
+                    sh """
+                    cd ${folderName}
+
+                    oc project ${projName} 
+
+                    mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+                    """
+                }
+           env:
+        - name: GIT_BRANCH
+          value: ${GIT_BRANCH}
+        - name: GIT_REPO
+          value: ${GIT_REPO}
+        - name: OPENSHIFT_TOKEN 
+          value: ${OPENSHIFT_TOKEN}
+        - name: DEPLOY_MODULE 
+          value: ${DEPLOY_MODULE}
+parameters:
+- name: GIT_REPO
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+  required: true
+- name: GIT_BRANCH
+  value: master
+  required: true
+- name: OPENSHIFT_TOKEN 
+  value: token_value 
+  required: true
+- name: DEPLOY_MODULE 
+  value: all
+  required: false
