@@ -209,7 +209,6 @@ pipeline {
 
 def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
     sh """ 
-        oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify 
         oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
         oc deploy ${svcName} --cancel -n ${projName}
         oc expose dc ${svcName} --port=8080 -n ${projName}
@@ -245,7 +244,6 @@ def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysql
     sh """
     cd ${folderName}
 
-    oc login ${openShiftHost} --token=${openShiftToken} --insecure-skip-tls-verify
     oc project ${projName} 
 
     mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
