@@ -144,7 +144,7 @@ pipeline {
             }
         }
 
-        stage('Pushing to Prod') {
+        stage('Pushing to Prod - maingateway') {
             environment {
                 projectName = 'rh-prod'
                 imageNameSpace = 'rh-dev'
@@ -161,6 +161,48 @@ pipeline {
                 promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
                 promoteService(env.imageNameSpace, env.projectName, env.serviceName,  env.srcTag, env.destTag)
             }
+        }
+        stage('Pushing to Prod - fisuser') {
+            environment {
+                projectName = 'rh-prod'
+                imageNameSpace = 'rh-dev'
+                srcTag = 'latest'
+                destTag = 'promoteProd'
+                serviceName = 'fisuser-service'
+            }
+            steps {
+                echo "Deploy to ${projectName} "
+                promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, 'fisuser-service', env.srcTag, env.destTag)
+            }
+        }
+        stage('Pushing to prod - fisalert') {
+            environment {
+                projectName = 'rh-prod'
+                imageNameSpace = 'rh-dev'
+                srcTag = 'latest'
+                destTag = 'promoteProd'
+                serviceName = 'fisalert-service'
+            }
+            steps {
+                echo "Deploy to ${projectName} "
+                promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', env.imageNameSpace, env.destTag, env.projectName)    
+                promoteService(env.imageNameSpace, env.projectName, 'fisalert-service', env.srcTag, env.destTag)
+            }
+        }
+        stage('Pushing to prod - nodejsalert') {
+          environment {
+              projectName = 'rh-prod'
+              imageNameSpace = 'rh-dev'
+              srcTag = 'latest'
+              destTag = 'promoteProd'
+              serviceName = 'nodejsalert-service'
+          }
+          steps {
+              echo "Deploy to ${projectName} "
+              promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+              promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
+          }
         }
     }
 }
