@@ -252,7 +252,6 @@ def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, 
         oc deploy ${svcName} --cancel -n ${projName}
         oc expose dc ${svcName} --port=8080 -n ${projName}
         oc expose svc ${svcName} --name=${svcName} -n ${projName}
-         
     """
 
 }

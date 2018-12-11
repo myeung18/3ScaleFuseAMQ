@@ -27,10 +27,6 @@ oc import-image amq62-openshift --from=registry.access.redhat.com/jboss-amq-6/am
 oc create -f projecttemplates/amq62-openshift.json
 oc new-app --template=amq62-basic --param=MQ_USERNAME=admin --param=MQ_PASSWORD=admin --param=IMAGE_STREAM_NAMESPACE=$DEV_PROJECT
 
-oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:jenkins -n ${DEV_PROJECT}
-oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:default -n ${DEV_PROJECT}
-oc policy add-role-to-user system:image-puller system:serviceaccount:${CICD_PROJECT}:default -n ${DEV_PROJECT}
-oc policy add-role-to-user view --serviceaccount=default -n ${CICD_PROJECT}
 
 oc delete project $TEST_PROJECT
 oc new-project $TEST_PROJECT 2> /dev/null
@@ -53,10 +49,10 @@ oc import-image amq62-openshift --from=registry.access.redhat.com/jboss-amq-6/am
 oc create -f projecttemplates/amq62-openshift.json
 oc new-app --template=amq62-basic --param=MQ_USERNAME=admin --param=MQ_PASSWORD=admin --param=IMAGE_STREAM_NAMESPACE=$TEST_PROJECT
 
-oc policy add-role-to-user edit system:serviceaccount:${TEST_PROJECT}:jenkins -n ${DEV_PROJECT}
-oc policy add-role-to-user edit system:serviceaccount:${TEST_PROJECT}:default -n ${DEV_PROJECT}
+oc policy add-role-to-user edit system:serviceaccount:${DEV_PROJECT}:jenkins -n ${TEST_PROJECT}
+oc policy add-role-to-user edit system:serviceaccount:${DEV_PROJECT}:default -n ${TEST_PROJECT}
 oc policy add-role-to-user system:image-puller system:serviceaccount:${TEST_PROJECT}:default -n ${DEV_PROJECT}
-oc policy add-role-to-user view --serviceaccount=default -n ${TEST_PROJECT}
+oc policy add-role-to-user view --serviceaccount=default -n ${DEV_PROJECT}
 
 oc delete project $PROD_PROJECT
 oc new-project $PROD_PROJECT 2> /dev/null
@@ -79,9 +75,11 @@ oc import-image amq62-openshift --from=registry.access.redhat.com/jboss-amq-6/am
 oc create -f projecttemplates/amq62-openshift.json
 oc new-app --template=amq62-basic --param=MQ_USERNAME=admin --param=MQ_PASSWORD=admin --param=IMAGE_STREAM_NAMESPACE=$PROD_PROJECT
 
-oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:jenkins -n ${PROD_PROJECT}
-oc policy add-role-to-user edit system:serviceaccount:${CICD_PROJECT}:default -n ${PROD_PROJECT}
-oc policy add-role-to-user view --serviceaccount=default -n ${PROD_PROJECT}
+
+oc policy add-role-to-user edit system:serviceaccount:${DEV_PROJECT}:jenkins -n ${PROD_PROJECT}
+oc policy add-role-to-user edit system:serviceaccount:${DEV_PROJECT}:default -n ${PROD_PROJECT}
+oc policy add-role-to-user system:image-puller system:serviceaccount:${PROD_PROJECT}:default -n ${DEV_PROJECT}
+oc policy add-role-to-user view --serviceaccount=default -n ${DEV_PROJECT}
 
 
 

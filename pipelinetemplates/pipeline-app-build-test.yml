@@ -19,18 +19,33 @@ objects:
       jenkinsPipelineStrategy:
         jenkinsfile: |-
             pipeline {   
-              agent {
+              /*agent {
                     node {
                         label 'maven'
                     }
+              }*/
+              agent any
+              parameters{ 
+                  string (defaultValue: '', name:'OPENSHIFT_TOKEN', description:'open shift token')
+                  string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
               }
+
               environment { 
                   openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
-                  openShiftToken = '555kYTHpxkj3liEBgD6t44loUBdDx9sFi8s2yrGbXvw'
+                  openShiftToken = 'pOJdr9a0PSLv3GztENkK3tQgbowf5BlaPuIDjjEydBY'
                   mySqlUser = 'dbuser'
                   mySqlPwd = 'password'
               }
               stages{
+                  stage('Confirm Pushing to Prod') {
+                      steps {
+                           script {
+                              timeout(time:2, unit: 'DAYS') {
+                                  def userInput = input(id: 'userInput', message: 'Approve to push to production?')
+                              }
+                          }
+                      }
+                  }
                   stage ("source") {
                       steps {
                           git 'https://github.com/myeung18/3ScaleFuseAMQ'
@@ -43,103 +58,199 @@ objects:
                       }
                       steps {
                           echo "Building.. ${serviceName} "
-                          build(env.serviceName)
+                          //build(env.serviceName)
 
                           echo "Deploying ${serviceName} to ${projectName}"
-                          deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                          //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
-                      }
-                      }
-                      stage('Build nodejsalert-ui') {
-                          environment { 
-                              serviceName = 'nodejsalert-ui'
-                              projectName = 'rh-dev'
-                          }
-                          steps {
-                              echo 'Building.. ${serviceName}'
-                              sh '''  
-                                  ls -last 
-                              '''
-                              node ('nodejs') {
-                                  git "https://github.com/myeung18/3ScaleFuseAMQ" 
-
-                                  script {
-                                      sh """
-                                      cd ${serviceName}
-
-                                      oc project ${projectName}
-                                      npm install && npm run openshift
-                                      """
-                                  }
-                              } 
-                          }
-                      }
-                      stage('Pushing to Test - nodejsalert') {
-                          environment {
-                              projectName = 'rh-test'
-                              imageNameSpace = 'rh-dev'
-                              srcTag = 'latest'
-                              destTag = 'promoteTest'
-                              serviceName = 'nodejsalert-service'
-                          }
-                          steps {
-                              echo "Deploy to ${projectName} "
-                              promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
-                              promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
-                          }
-                      }
-                      stage("Call OpenShift Test") {           
-                          steps { 
-                              script {
-                                  sh " oc projects " 
-                              }
-                          } 
                       }
                   }
-                }
+                  stage('Build nodejsalert-ui') {
+                      environment { 
+                          serviceName = 'nodejsalert-ui'
+                          projectName = 'rh-dev'
+                      }
+                      steps {
+                          echo 'Building.. ${serviceName}'
+                          sh '''  
+                              ls -last 
+                          '''
+                          /*
+                          node ('nodejs') {
+                              git "https://github.com/myeung18/3ScaleFuseAMQ" 
 
-                def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
-                    sh """ 
+                              script {
+                                  sh """
+                                  cd ${serviceName}
 
-                        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
-                        oc deploy ${svcName} --cancel -n ${projName}
-                        oc expose dc ${svcName} --port=8080 -n ${projName}
-                        oc expose svc ${svcName} --name=${svcName} -n ${projName}
-                         
-                    """
-                }
-                def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
-                    echo  "hello method out   ${projName} "
-                    openshiftTag(namespace: imageNamespace,
-                                  srcStream: svcName,
-                                  srcTag: sourceTag,
-                                  destStream: svcName,
-                                  destTag: destinationTag)
+                                  oc project ${projectName}
+                                  npm install && npm run openshift
+                                  """
+                              }
+                          } 
+                          */
+                      }
+                  }
 
-                    openshiftDeploy(namespace: projName,
-                                 deploymentConfig: svcName,
-                                 waitTime: '300000')
-                }
+                    stage('Pushing to Test - maingateway') {
+                        environment {
+                            projectName = 'rh-test'
+                            imageNameSpace = 'rh-dev'
+                            srcTag = 'latest'
+                            destTag = 'promoteTest'
+                            serviceName = 'maingateway-service'
+                        }
+                        steps {
+                            echo "Deploy to ${projectName} "
+                            promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
+                            promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                        }
+                    }
+                    stage('Pushing to Test - fisuser') {
+                        environment {
+                            projectName = 'rh-test'
+                            imageNameSpace = 'rh-dev'
+                            srcTag = 'latest'
+                            destTag = 'promoteTest'
+                            serviceName = 'fisuser-service'
+                        }
+                        steps {
+                            echo "Deploy to ${projectName} "
+                            promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', env.imageNameSpace, env.destTag, env.projectName)    
+                            promoteService(env.imageNameSpace, env.projectName, 'fisuser-service', env.srcTag, env.destTag)
+                        }
+                    }
+                    stage('Pushing to Test - fisalert') {
+                        environment {
+                            projectName = 'rh-test'
+                            imageNameSpace = 'rh-dev'
+                            srcTag = 'latest'
+                            destTag = 'promoteTest'
+                            serviceName = 'fisalert-service'
+                        }
+                        steps {
+                            echo "Deploy to ${projectName} "
+                            promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', env.imageNameSpace, env.destTag, env.projectName)    
+                            promoteService(env.imageNameSpace, env.projectName, 'fisalert-service', env.srcTag, env.destTag)
+                        }
+                    }
 
-                def build(folderName) {
-                    sh """
+                  stage('Pushing to Test - nodejsalert') {
+                      environment {
+                          projectName = 'rh-test'
+                          imageNameSpace = 'rh-dev'
+                          srcTag = 'latest'
+                          destTag = 'promoteTest'
+                          serviceName = 'nodejsalert-service'
+                      }
+                      steps {
+                          echo "Deploy to ${projectName} "
+                          promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                          promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
+                      }
+                  }
+                    stage('Pushing to Prod - maingateway') {
+                        environment {
+                            projectName = 'rh-prod'
+                            imageNameSpace = 'rh-dev'
+                            srcTag = 'latest'
+                            destTag = 'promoteProd'
+                            serviceName = 'maingateway-service'
+                        }
+                        steps {
+                            echo "Deploy to ${projectName} "
+                            promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
+                            promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                        }
+                    }
+                    stage('Pushing to Prod - fisuser') {
+                        environment {
+                            projectName = 'rh-prod'
+                            imageNameSpace = 'rh-dev'
+                            srcTag = 'latest'
+                            destTag = 'promoteProd'
+                            serviceName = 'fisuser-service'
+                        }
+                        steps {
+                            echo "Deploy to ${projectName} "
+                            promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', env.imageNameSpace, env.destTag, env.projectName)    
+                            promoteService(env.imageNameSpace, env.projectName, 'fisuser-service', env.srcTag, env.destTag)
+                        }
+                    }
+                    stage('Pushing to prod - fisalert') {
+                        environment {
+                            projectName = 'rh-prod'
+                            imageNameSpace = 'rh-dev'
+                            srcTag = 'latest'
+                            destTag = 'promoteProd'
+                            serviceName = 'fisalert-service'
+                        }
+                        steps {
+                            echo "Deploy to ${projectName} "
+                            promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', env.imageNameSpace, env.destTag, env.projectName)    
+                            promoteService(env.imageNameSpace, env.projectName, 'fisalert-service', env.srcTag, env.destTag)
+                        }
+                    }
 
-                    cd ${folderName}
-                    
-                    mvn package -Dmaven.test.skip=true 
-                    """
+                  stage('Pushing to prod - nodejsalert') {
+                      environment {
+                          projectName = 'rh-prod'
+                          imageNameSpace = 'rh-dev'
+                          srcTag = 'latest'
+                          destTag = 'promoteProd'
+                          serviceName = 'nodejsalert-service'
+                      }
+                      steps {
+                          echo "Deploy to ${projectName} "
+                          promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                          promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
+                      }
+                  }
+              }
+            }
 
-                }
-                def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
-                    sh """
-                    cd ${folderName}
+            def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
+                sh """ 
 
-                    oc project ${projName} 
+                    oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
+                    oc deploy ${svcName} --cancel -n ${projName}
+                    oc expose dc ${svcName} --port=8080 -n ${projName}
+                    oc expose svc ${svcName} --name=${svcName} -n ${projName}
+                     
+                """
+            }
+            def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
+                echo  "hello method out   ${projName} "
+                openshiftTag(namespace: imageNamespace,
+                              srcStream: svcName,
+                              srcTag: sourceTag,
+                              destStream: svcName,
+                              destTag: destinationTag)
 
-                    mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
-                    """
-                }
-           env:
+                openshiftDeploy(namespace: projName,
+                             deploymentConfig: svcName,
+                             waitTime: '300000')
+            }
+
+            def build(folderName) {
+                sh """
+
+                cd ${folderName}
+                
+                mvn package -Dmaven.test.skip=true 
+                """
+
+            }
+            def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
+                sh """
+                cd ${folderName}
+
+                oc project ${projName} 
+
+                mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+                """
+            }
+        env:
         - name: GIT_BRANCH
           value: ${GIT_BRANCH}
         - name: GIT_REPO
