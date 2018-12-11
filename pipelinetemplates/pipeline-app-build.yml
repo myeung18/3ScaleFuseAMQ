@@ -33,10 +33,20 @@ objects:
           value: ${GIT_BRANCH}
         - name: GIT_REPO
           value: ${GIT_REPO}
-        - name: OPENSHIFT_TOKEN 
-          value: ${OPENSHIFT_TOKEN}
         - name: DEPLOY_MODULE 
           value: ${DEPLOY_MODULE}
+        - name: CICD_PROJECT 
+          value: ${CICD_PROJECT}
+        - name: TEST_PROJECT 
+          value: ${TEST_PROJECT}
+        - name: PROD_PROJECT 
+          value: ${PROD_PROJECT}
+        - name: MYSQL_USER 
+          value: ${MYSQL_USER}
+        - name: MYSQL_PWD 
+          value: ${MYSQL_PWD}
+        - name: IMAGENAMESPACE 
+          value: ${IMAGENAMESPACE}
 parameters:
 - name: GIT_REPO
   value: https://github.com/myeung18/3ScaleFuseAMQ.git
@@ -44,9 +54,24 @@ parameters:
 - name: GIT_BRANCH
   value: master
   required: true
-- name: OPENSHIFT_TOKEN 
-  value: token_value 
-  required: true
 - name: DEPLOY_MODULE 
   value: all
+  required: false
+- name: CICD_PROJECT 
+  value: rh-dev
+  required: false
+- name: TEST_PROJECT 
+  value: rh-test
+  required: false
+- name: PROD_PROJECT 
+  value: rh-prod
+  required: false
+- name: MYSQL_USER 
+  value: root 
+  required: false
+- name: MYSQL_PWD
+  value: password 
+  required: false
+- name: IMAGENAMESPACE 
+  value: rh-dev 
   required: false
