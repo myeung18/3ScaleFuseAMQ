@@ -22,9 +22,26 @@ pipeline {
                 git 'https://github.com/myeung18/3ScaleFuseAMQ'
             }
         }
+        stage('Wait for user to select module to build.') {
+            steps {
+                script {
+                    env.userSelModule = input(id: 'userInput', message: 'Please select which module to bulid?',
+                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                       description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                    ])
+        
+                    println("user selected module " + env.userSelModule);
+                }
+            }
+        }
         stage('Build maingateway-service') {
             environment { 
                 serviceName = 'maingateway-service'
+            }
+            when {
+                expression {
+                    env.userInput == 'Gateway' || env.userInput == 'All'
+                }
             }
             steps {
                 echo "Building.. ${serviceName} "
@@ -39,6 +56,11 @@ pipeline {
             environment { 
                 serviceName = 'fisuser-service'
             }
+            when {
+                expression {
+                    env.userSelModule == 'FisUser' || env.userSelModule == 'All'
+                }
+            }
             steps {
                 echo "Building.. ${serviceName} "
                 //build(env.serviceName)
@@ -50,6 +72,11 @@ pipeline {
         stage('Build fisalert-service') {
             environment { 
                 serviceName = 'fisalert-service'
+            }
+            when {
+                expression {
+                    env.userSelModule == 'FisAlert' || env.userSelModule == 'All'
+                }
             }
             steps {
                 echo "Building.. ${serviceName} "
@@ -63,8 +90,13 @@ pipeline {
             environment { 
                 serviceName = 'nodejsalert-ui'
             }
+            when {
+                expression {
+                    env.userSelModule == 'UI' || env.userSelModule == 'All'
+                }
+            }
             steps {
-                echo 'Building.. ${serviceName}'
+                echo "Building.. ${serviceName}"
                 /*
                 node ('nodejs') {
                     git "https://github.com/myeung18/3ScaleFuseAMQ" 
@@ -130,12 +162,15 @@ pipeline {
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
-        stage('Confirm Pushing to Prod') {
+        stage('Wait for user to select module to push to production.') {
             steps {
-                 script {
-                    timeout(time:2, unit: 'DAYS') {
-                        def userInput = input(id: 'userInput', message: 'Approve to push to production?')
-                    }
+                script {
+                    env.userSelModule = input(id: 'userInput', message: 'Please select module to push to production?',
+                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                       description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                    ])
+        
+                    println("user selected module " + env.userSelModule);
                 }
             }
         }
@@ -144,6 +179,11 @@ pipeline {
                 srcTag = 'latest'
                 destTag = 'promoteProd'
                 serviceName = 'maingateway-service'
+            }
+            when {
+                expression {
+                    env.userselmodule == 'Gateway' || env.userselmodule == 'All'
+                }
             }
             steps {
                 echo 'Deploy to ${PROD_PROJECT} '
@@ -158,6 +198,11 @@ pipeline {
                 destTag = 'promoteProd'
                 serviceName = 'fisuser-service'
             }
+            when {
+                expression {
+                    env.userselmodule == 'fisuser' || env.userselmodule == 'All'
+                }
+            }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
                 promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
@@ -170,6 +215,11 @@ pipeline {
                 destTag = 'promoteProd'
                 serviceName = 'fisalert-service'
             }
+            when {
+                expression {
+                    env.userSelModule == 'FisAlert' || env.userSelModule == 'All'
+                }
+            }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
                 promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
@@ -177,16 +227,21 @@ pipeline {
             }
         }
         stage('Pushing to prod - nodejsalert') {
-          environment {
+            environment {
               srcTag = 'latest'
               destTag = 'promoteProd'
               serviceName = 'nodejsalert-service'
-          }
-          steps {
-              echo "Deploy to ${PROD_PROJECT} "
-              promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
-              promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
-          }
+            }
+            when {
+                expression {
+                    env.userselmodule == 'UI' || env.userselmodule == 'All'
+                }
+            }
+            steps {
+                echo "Deploy to ${PROD_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
+            }
         }
     }
 }
