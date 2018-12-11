@@ -1,19 +1,17 @@
 pipeline {
     agent any
-    /*
     agent {
         node {
             label 'maven'
         }
     }
-    */
     parameters{ 
         string (defaultValue: '', name:'OPENSHIFT_TOKEN', description:'open shift token')
         string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
     }
     environment { 
-        openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
-        openShiftToken = '555kYTHpxkj3liEBgD6t44loUBdDx9sFi8s2yrGbXvw'
+        openShiftHost = ''
+        openShiftToken = ''
         mySqlUser = 'dbuser'
         mySqlPwd = 'password'
     }
@@ -30,10 +28,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${projectName}"
-                //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+                deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
 
             }
         }
@@ -143,7 +141,15 @@ pipeline {
                 promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
-
+        stage('Confirm Pushing to Prod') {
+            steps {
+                 script {
+                    timeout(time:2, unit: 'DAYS') {
+                        def userInput = input(id: 'userInput', message: 'Approve to push to production?')
+                    }
+                }
+            }
+        }
         stage('Pushing to Prod - maingateway') {
             environment {
                 projectName = 'rh-prod'
@@ -153,9 +159,6 @@ pipeline {
                 serviceName = 'maingateway-service'
             }
             steps {
-                timeout(time: 2, unit: 'DAYS') {
-                  input message: 'Approve to production?'
-                }
                 echo 'Deploy to ${projectName} '
                 
                 promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, env.imageNameSpace, env.destTag, env.projectName)    
