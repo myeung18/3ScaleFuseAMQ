@@ -16,10 +16,6 @@ pipeline {
         string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
         string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
     }
-    environment { 
-        openShiftHost = '---'
-        openShiftToken = '--'
-    }
     stages {
         stage ("source") {
             steps {
@@ -29,47 +25,43 @@ pipeline {
         stage('Build maingateway-service') {
             environment { 
                 serviceName = 'maingateway-service'
-                projectName = 'rh-dev'
             }
             steps {
                 echo "Building.. ${serviceName} "
                 //build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                //deploy(env.serviceName, params.CICD_PROJECT, env.openShiftHost, env.openShiftToken, params.MYSQL_USER, params.MYSQL_PWD)
+                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
 
             }
         }
         stage('Build fisuser-service') {
             environment { 
                 serviceName = 'fisuser-service'
-                projectName = 'rh-dev'
             }
             steps {
                 echo "Building.. ${serviceName} "
                 //build(env.serviceName)
 
-                echo "Deploying ${serviceName} to ${projectName}"
-                //deploy(env.serviceName, params.CICD_PROJECT, env.openShiftHost, env.openShiftToken, params.MYSQL_USER, params.MYSQL_PWD)
+                echo "Deploying ${serviceName} to ${CICD_PROJECT}"
+                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
            }
         }
         stage('Build fisalert-service') {
             environment { 
                 serviceName = 'fisalert-service'
-                projectName = 'rh-dev'
             }
             steps {
                 echo "Building.. ${serviceName} "
                 //build(env.serviceName)
 
-                echo "Deploying ${serviceName} to ${projectName}"
-                //deploy(env.serviceName, params.CICD_PROJECT, env.openShiftHost, env.openShiftToken, params.MYSQL_USER, params.MYSQL_PWD)
+                echo "Deploying ${serviceName} to ${CICD_PROJECT}"
+                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
             }
         }
         stage('Build nodejsalert-ui') {
             environment { 
                 serviceName = 'nodejsalert-ui'
-                projectName = 'rh-dev'
             }
             steps {
                 echo 'Building.. ${serviceName}'
@@ -92,57 +84,49 @@ pipeline {
         }
         stage('Pushing to Test - maingateway') {
             environment {
-                projectName = 'rh-test'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteTest'
                 serviceName = 'maingateway-service'
             }
             steps {
-                echo "Deploy to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                echo "Deploy to ${TEST_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'maingateway-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,'maingateway-service', env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Test - fisuser') {
             environment {
-                projectName = 'rh-test'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteTest'
                 serviceName = 'fisuser-service'
             }
             steps {
-                echo "Deploy to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                echo "Deploy to ${TEST_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Test - fisalert') {
             environment {
-                projectName = 'rh-test'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteTest'
                 serviceName = 'fisalert-service'
             }
             steps {
-                echo "Deploy to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                echo "Deploy to ${TEST_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Test - nodejsalert') {
             environment {
-                projectName = 'rh-test'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteTest'
                 serviceName = 'nodejsalert-service'
             }
             steps {
-                echo "Deploy to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                echo "Deploy to ${TEST_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
@@ -157,58 +141,50 @@ pipeline {
         }
         stage('Pushing to Prod - maingateway') {
             environment {
-                projectName = 'rh-prod'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteProd'
                 serviceName = 'maingateway-service'
             }
             steps {
-                echo 'Deploy to ${projectName} '
+                echo 'Deploy to ${PROD_PROJECT} '
                 
-                promoteServiceSetup(openShiftHost, openShiftToken, env.serviceName, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, env.serviceName, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, env.serviceName,  env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Prod - fisuser') {
             environment {
-                projectName = 'rh-prod'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteProd'
                 serviceName = 'fisuser-service'
             }
             steps {
-                echo "Deploy to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                echo "Deploy to ${PROD_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
         stage('Pushing to prod - fisalert') {
             environment {
-                projectName = 'rh-prod'
-                imageNameSpace = 'rh-dev'
                 srcTag = 'latest'
                 destTag = 'promoteProd'
                 serviceName = 'fisalert-service'
             }
             steps {
-                echo "Deploy to ${projectName} "
-                promoteServiceSetup(openShiftHost, openShiftToken, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                echo "Deploy to ${PROD_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
         stage('Pushing to prod - nodejsalert') {
           environment {
-              projectName = 'rh-prod'
-              imageNameSpace = 'rh-dev'
               srcTag = 'latest'
               destTag = 'promoteProd'
               serviceName = 'nodejsalert-service'
           }
           steps {
-              echo "Deploy to ${projectName} "
-              promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+              echo "Deploy to ${PROD_PROJECT} "
+              promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
               promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
           }
         }
