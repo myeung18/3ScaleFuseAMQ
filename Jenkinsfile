@@ -9,8 +9,8 @@ pipeline {
         string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
     }
     environment { 
-        openShiftHost = ''
-        openShiftToken = ''
+        openShiftHost = '---'
+        openShiftToken = '--'
         mySqlUser = 'dbuser'
         mySqlPwd = 'password'
     }
