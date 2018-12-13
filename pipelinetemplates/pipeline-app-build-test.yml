@@ -25,32 +25,35 @@ objects:
                     }
               }*/
               agent any
-              parameters{ 
-                  string (defaultValue: '', name:'OPENSHIFT_TOKEN', description:'open shift token')
-                  string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
-              }
-
-              environment { 
-                  openShiftHost = 'https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443'
-                  openShiftToken = 'pOJdr9a0PSLv3GztENkK3tQgbowf5BlaPuIDjjEydBY'
-                  mySqlUser = 'dbuser'
-                  mySqlPwd = 'password'
-              }
-              stages{
-                  stage('Confirm Pushing to Prod') {
-                      steps {
-                           script {
-                              timeout(time:2, unit: 'DAYS') {
-                                  def userInput = input(id: 'userInput', message: 'Approve to push to production?')
-                              }
-                          }
-                      }
+            parameters{ 
+              string (defaultValue: 'token value', name:'OPENSHIFT_TOKEN', description:'open shift token')
+              string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
+              string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
+              string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
+              string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
+              string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
+              string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
+              string (defaultValue: 'fisuser', name:'MODULE_NAME', description:'Module of this build')
+            }
+            stages{
+                 stage("Wait for user to select module to build." ) {
+                    steps {
+                        script {
+                             env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
+                             parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                                description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                             ])
+                
+                            println("user selected module" + env.userInput); //Use this value to branch to different logic if needed
+                        }
+                    }
+                
+                }     
+                stage ("source") {
+                  steps {
+                      git 'https://github.com/myeung18/3ScaleFuseAMQ'
                   }
-                  stage ("source") {
-                      steps {
-                          git 'https://github.com/myeung18/3ScaleFuseAMQ'
-                      }
-                  }
+              }
                   stage('Build maingateway-service') {
                       environment { 
                           serviceName = 'maingateway-service'
