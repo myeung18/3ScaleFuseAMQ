@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Template
+labels:
+  demo: rhpoc-template
+metadata:
+  annotations:
+    description: Red Hat POC Only - Spring Boot Application Template
+    iconClass: icon-java
+    tags: microservice,spring
+  name: rhpoc-template
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      application: ${APP_NAME}
+  spec:
+    tags:
+    - name: latest 
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      application: ${APP_NAME}
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APP_NAME}:latest
+    source:
+      git:
+        ref: ${GIT_REF}
+        uri: ${GIT_URI}
+      type: Git
+      contextDir: ${GIT_CONTEXT_DIR}
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: ${MAVEN_MIRROR_URL}
+        from:
+          kind: ImageStreamTag
+          name: redhat-openjdk18-openshift:1.1
+          namespace: openshift
+      type: Source
+    triggers:
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+parameters:
+- displayName: Application name
+  name: APP_NAME
+  required: true
+  value: maingateway-service 
+- displayName: Git Context dir
+  name: GIT_CONTEXT_DIR
+  required: true
+  value: maingateway-service 
+- description: Git source URI for application
+  displayName: Git source repository
+  name: GIT_URI
+  required: true
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+- displayName: Git branch/tag reference
+  name: GIT_REF
+  required: true
+  value: master
+- description: Maven mirror url. If nexus is deployed locally, use nexus url (e.g. http://nexus.ci:8081/content/groups/public/)
+  displayName: Maven mirror url
+  name: MAVEN_MIRROR_URL
