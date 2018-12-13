@@ -1,21 +1,96 @@
 pipeline {
-    agent any
-
+    agent {
+        node {
+            label 'maven'
+        }
+    }
+    parameters{ 
+        string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
+        string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
+        string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
+        string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
+        string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
+        string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
+        string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
+        string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
+        string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
+        string (defaultValue: 'fisuser', name:'MODULE_NAME', description:'Module of this build')
+    }
     stages {
-        stage('Build') {
+        stage('Build Service') {
             steps {
-                echo 'Building..'
+                echo "Building.. ${MODULE_NAME} "
+                //build(params.MODULE_NAME)
+
+                echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
+                //deploy(params.MODULE_NAME+'-service', params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+
             }
         }
-        stage('Test') {
+        stage('Pushing to Test') {
+            environment {
+                srcTag = 'latest'
+                destTag = 'promoteTest'
+            }
             steps {
-                echo 'Testing..'
+                echo "Deploy ${MODULE_NAME} to${TEST_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME+'-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,params.MODULE_NAME+'-service', env.srcTag, env.destTag)
             }
         }
-        stage('Deploy') {
+        stage('Pushing to Prod') {
+            environment {
+                srcTag = 'latest'
+                destTag = 'promoteProd'
+            }
             steps {
-                echo 'Deploying....'
+                echo 'Deploy ${MODULE_NAME} to ${PROD_PROJECT} '
+                
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME+'-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, params.MODULE_NAME+'.service',  env.srcTag, env.destTag)
             }
         }
     }
+}
+
+def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
+    sh """ 
+        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
+        oc deploy ${svcName} --cancel -n ${projName}
+        oc expose dc ${svcName} --port=8080 -n ${projName}
+        oc expose svc ${svcName} --name=${svcName} -n ${projName}
+    """
+
+}
+def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
+    echo  "hello method out   ${projName} "
+    openshiftTag(namespace: imageNamespace,
+                  srcStream: svcName,
+                  srcTag: sourceTag,
+                  destStream: svcName,
+                  destTag: destinationTag)
+
+    openshiftDeploy(namespace: projName,
+  			     deploymentConfig: svcName,
+			     waitTime: '300000')
+
+}
+
+def build(folderName) {
+    sh """
+
+    cd ${folderName}
+    
+    mvn package -Dmaven.test.skip=true 
+    """
+
+}
+def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
+    sh """
+    cd ${folderName}
+
+    oc project ${projName} 
+
+    mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+    """
 }
