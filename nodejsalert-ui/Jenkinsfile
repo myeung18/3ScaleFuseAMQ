@@ -4,7 +4,6 @@ pipeline {
             label 'nodejs'
         }
     }
-    agent any
     parameters{ 
         string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
