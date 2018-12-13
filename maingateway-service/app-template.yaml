@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Template
 labels:
-  demo: rhpoc-template
+    demo: ${APP_NAME}-template
 metadata:
   annotations:
     description: Red Hat POC Only - Spring Boot Application Template
     iconClass: icon-java
     tags: microservice,spring
-  name: rhpoc-template
+  name: ${APP_NAME}-template
 objects:
 - apiVersion: v1
   kind: ImageStream
