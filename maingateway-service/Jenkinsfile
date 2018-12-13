@@ -14,44 +14,40 @@ pipeline {
         string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
         string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
         string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
+        string (defaultValue: 'fisuser-service', name:'MODULE_NAME', description:'Module of this build')
     }
     stages {
-        stage('Build maingateway-service') {
-            environment { 
-                serviceName = 'maingateway-service'
-            }
+        stage('Build Service') {
             steps {
-                echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                echo "Building.. ${MODULE_NAME} "
+                //build(params.MODULE_NAME)
 
-                echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
+                //deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
 
             }
         }
-        stage('Pushing to Test - maingateway') {
+        stage('Pushing to Test') {
             environment {
                 srcTag = 'latest'
                 destTag = 'promoteTest'
-                serviceName = 'maingateway-service'
             }
             steps {
-                echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'maingateway-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
-                promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,'maingateway-service', env.srcTag, env.destTag)
+                echo "Deploy ${MODULE_NAME} to ${TEST_PROJECT} "
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,params.MODULE_NAME, env.srcTag, env.destTag)
             }
         }
-        stage('Pushing to Prod - maingateway') {
+        stage('Pushing to Prod') {
             environment {
                 srcTag = 'latest'
                 destTag = 'promoteProd'
-                serviceName = 'maingateway-service'
             }
             steps {
-                echo 'Deploy to ${PROD_PROJECT} '
+                echo 'Deploy ${MODULE_NAME} to ${PROD_PROJECT} '
                 
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, env.serviceName, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
-                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, env.serviceName,  env.srcTag, env.destTag)
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, params.MODULE_NAME,  env.srcTag, env.destTag)
             }
         }
     }

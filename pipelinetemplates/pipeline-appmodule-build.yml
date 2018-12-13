@@ -27,7 +27,7 @@ objects:
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfilePath: ${MODULE_NAME}-service/Jenkinsfile
+        jenkinsfilePath: ${MODULE_NAME}/Jenkinsfile
         env:
         - name: GIT_BRANCH
           value: ${GIT_BRANCH}

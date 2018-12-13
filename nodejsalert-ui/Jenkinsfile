@@ -1,9 +1,10 @@
 pipeline {
     agent {
         node {
-            label 'maven'
+            label 'nodejs'
         }
     }
+    agent any
     parameters{ 
         string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
@@ -14,17 +15,27 @@ pipeline {
         string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
         string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
         string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
-        string (defaultValue: 'fisuser-service', name:'MODULE_NAME', description:'Module of this build')
+        string (defaultValue: 'nodejsalert-ui', name:'MODULE_NAME', description:'Module of this build')
     }
     stages {
-        stage('Build Service') {
+        stage('Build UI') {
             steps {
-                echo "Building.. ${MODULE_NAME} "
-                //build(params.MODULE_NAME)
+                echo "Building.. ${MODULE_NAME}"
+                /*
+                node ('nodejs') {
+                    git "https://github.com/myeung18/3ScaleFuseAMQ" 
+ 
+                    script {
+                        sh """
+                        cd ${MODULE_NAME}
 
-                echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
-                //deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                        oc project ${CICD_PROJECT}
 
+                        npm install && npm run openshift
+                        """
+                    }
+                } 
+                */
             }
         }
         stage('Pushing to Test') {
@@ -34,20 +45,19 @@ pipeline {
             }
             steps {
                 echo "Deploy ${MODULE_NAME} to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
-                promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,params.MODULE_NAME, env.srcTag, env.destTag)
+                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, params.MODULE_NAME, env.srcTag, env.destTag)
             }
         }
-        stage('Pushing to Prod') {
+        stage('Pushing to prod') {
             environment {
-                srcTag = 'latest'
-                destTag = 'promoteProd'
+              srcTag = 'latest'
+              destTag = 'promoteProd'
             }
             steps {
-                echo 'Deploy ${MODULE_NAME} to ${PROD_PROJECT} '
-                
+                echo "Deploy ${MODULE_NAME} to ${PROD_PROJECT} "
                 promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
-                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, params.MODULE_NAME,  env.srcTag, env.destTag)
+                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, params.MODULE_NAME, env.srcTag, env.destTag)
             }
         }
     }
