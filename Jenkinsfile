@@ -5,7 +5,7 @@ pipeline {
         }
     }
     parameters{ 
-        string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
+        string (defaultValue: 'notinuse', name:'OPENSHIFT_HOST', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
         string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
         string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
@@ -42,7 +42,7 @@ pipeline {
                 build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
 
             }
         }
@@ -60,7 +60,7 @@ pipeline {
                 build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
            }
         }
         stage('Build fisalert-service') {
@@ -77,7 +77,7 @@ pipeline {
                 build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
             }
         }
         stage('Build nodejsalert-ui') {
@@ -114,7 +114,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'maingateway-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'maingateway-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,'maingateway-service', env.srcTag, env.destTag)
             }
         }
@@ -126,7 +126,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
@@ -138,7 +138,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
@@ -150,7 +150,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
@@ -180,7 +180,7 @@ pipeline {
             steps {
                 echo 'Deploy to ${PROD_PROJECT} '
                 
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, env.serviceName, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, env.serviceName, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, env.serviceName,  env.srcTag, env.destTag)
             }
         }
@@ -197,7 +197,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
@@ -214,7 +214,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
@@ -231,7 +231,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }

@@ -5,7 +5,7 @@ pipeline {
         }
     }
     parameters{ 
-        string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
+        string (defaultValue: 'notinuse', name:'OPENSHIFT_HOST', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
         string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
         string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
@@ -22,7 +22,7 @@ pipeline {
                 build(params.MODULE_NAME)
 
                 echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
-                deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
             }
         }
         stage('Pushing to Test') {
@@ -32,7 +32,7 @@ pipeline {
             }
             steps {
                 echo "Deploy ${MODULE_NAME} to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,params.MODULE_NAME, env.srcTag, env.destTag)
             }
         }
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 echo 'Deploy ${MODULE_NAME} to ${PROD_PROJECT} '
                 
-                promoteServiceSetup(params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, params.MODULE_NAME,  env.srcTag, env.destTag)
             }
         }
@@ -53,10 +53,10 @@ pipeline {
 
 def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
     sh """ 
-        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
+        oc create dc ${svcName} --image=${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
         oc deploy ${svcName} --cancel -n ${projName}
-        oc expose dc ${svcName} --port=8080 -n ${projName}
-        oc expose svc ${svcName} --name=${svcName} -n ${projName}
+        #oc expose dc ${svcName} --port=8080 -n ${projName}
+        #oc expose svc ${svcName} --name=${svcName} -n ${projName}
     """
 
 }
