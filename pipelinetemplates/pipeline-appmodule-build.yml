@@ -33,6 +33,10 @@ objects:
           value: ${GIT_BRANCH}
         - name: GIT_REPO
           value: ${GIT_REPO}
+        - name: OPENSHIFT_URL 
+          value: ${OPENSHIFT_URL}
+        - name: OPENSHIFT_TOKEN 
+          value: ${OPENSHIFT_TOKEN}
         - name: MODULE_NAME 
           value: ${MODULE_NAME}
         - name: CICD_PROJECT 
@@ -54,6 +58,12 @@ parameters:
 - name: GIT_BRANCH
   value: master
   required: true
+- name: OPENSHIFT_URL 
+  value: openshift_url
+  required: false 
+- name: OPENSHIFT_TOKEN
+  value: openshift_token
+  required: false 
 - name: MODULE_NAME
   value: maingateway 
   required: true 

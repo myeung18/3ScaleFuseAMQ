@@ -54,7 +54,7 @@ pipeline {
 
 def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
     sh """ 
-        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
+        oc create dc ${svcName} --image=${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
         oc deploy ${svcName} --cancel -n ${projName}
         oc expose dc ${svcName} --port=8080 -n ${projName}
         oc expose svc ${svcName} --name=${svcName} -n ${projName}
