@@ -1,10 +1,9 @@
 pipeline {
-    /*agent {
+    agent {
         node {
             label 'maven'
         }
-    }*/
-    agent any
+    }
     parameters{ 
         string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
@@ -17,11 +16,6 @@ pipeline {
         string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
     }
     stages {
-        stage ("source") {
-            steps {
-                git 'https://github.com/myeung18/3ScaleFuseAMQ'
-            }
-        }
         stage('Wait for user to select module to build.') {
             steps {
                 script {
@@ -45,10 +39,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
 
             }
         }
@@ -63,10 +57,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
            }
         }
         stage('Build fisalert-service') {
@@ -80,10 +74,10 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName} "
-                //build(env.serviceName)
+                build(env.serviceName)
 
                 echo "Deploying ${serviceName} to ${CICD_PROJECT}"
-                //deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(env.serviceName, params.CICD_PROJECT, params.OPENSHIFT_URL, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
             }
         }
         stage('Build nodejsalert-ui') {
@@ -97,9 +91,8 @@ pipeline {
             }
             steps {
                 echo "Building.. ${serviceName}"
-                /*
                 node ('nodejs') {
-                    git "https://github.com/myeung18/3ScaleFuseAMQ" 
+                    git params.GIT_REPO 
  
                     script {
                         sh """
@@ -111,7 +104,6 @@ pipeline {
                         """
                     }
                 } 
-                */
             }
         }
         stage('Pushing to Test - maingateway') {
