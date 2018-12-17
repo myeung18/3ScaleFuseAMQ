@@ -7,21 +7,21 @@ pipeline {
     parameters{ 
         string (defaultValue: 'notinuse', name:'OPENSHIFT_URL', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
-        string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
         string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
         string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
         string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
-        string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
+        string (defaultValue: 'dbuser', name:'MYSQL_USER', description:'My Sql user name')
         string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
         string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
         string (defaultValue: 'nodejsalert-ui', name:'MODULE_NAME', description:'Module of this build')
+        string (defaultValue: '--', name:'GIT_REPO', description:'Git source')
     }
     stages {
         stage('Build UI') {
             steps {
                 echo "Building.. ${MODULE_NAME}"
                 node ('nodejs') {
-                    git "https://github.com/myeung18/3ScaleFuseAMQ" 
+                    git params.GIT_REPO 
  
                     script {
                         sh """

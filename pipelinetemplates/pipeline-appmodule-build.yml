@@ -33,8 +33,6 @@ objects:
           value: ${GIT_BRANCH}
         - name: GIT_REPO
           value: ${GIT_REPO}
-        - name: DEPLOY_MODULE 
-          value: ${DEPLOY_MODULE}
         - name: MODULE_NAME 
           value: ${MODULE_NAME}
         - name: CICD_PROJECT 
@@ -59,9 +57,6 @@ parameters:
 - name: MODULE_NAME
   value: maingateway 
   required: true 
-- name: DEPLOY_MODULE 
-  value: all
-  required: false
 - name: CICD_PROJECT 
   value: rh-dev
   required: false
