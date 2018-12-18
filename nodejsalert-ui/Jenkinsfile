@@ -1,7 +1,7 @@
 pipeline {
     agent {
         node {
-            label 'maven'
+            label 'nodejs'
         }
     }
     parameters{ 
@@ -17,14 +17,22 @@ pipeline {
         string (defaultValue: 'service-name:', name:'MODULE_NAME', description:'Module of this build')
     }
     stages {
-        stage('Build Service') {
+        stage('Build Service nodejsalert-ui') {
             steps {
-                echo "Building.. ${MODULE_NAME} "
-                build(params.MODULE_NAME)
+                echo "Building.. ${serviceName}"
+                node ('nodejs') {
+                    git params.GIT_REPO 
+ 
+                    script {
+                        sh """
+                        cd ${serviceName}
 
-                echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
-                deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                        oc project ${CICD_PROJECT}
 
+                        npm install && npm run openshift
+                        """
+                    }
+                }
             }
         }
         stage('Pushing to Test') {
