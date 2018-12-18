@@ -1,0 +1,157 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+    template: integration-deploy-pipeline-test
+metadata:
+  annotations:
+    description: RHTE Deployment Pipeline
+  name: integration-deploy-pipeline-test
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+    name: integration-deploy-pipeline-test
+    name: integration-deploy-pipeline-test
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+            pipeline {   
+              /*agent {
+                    node {
+                        label 'maven'
+                    }
+              }*/
+              agent any
+            parameters{ 
+              string (defaultValue: 'token value', name:'OPENSHIFT_TOKEN', description:'open shift token')
+              string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
+              string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
+              string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
+              string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
+              string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
+              string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
+              string (defaultValue: 'fisuser', name:'MODULE_NAME', description:'Module of this build')
+              string (defaultValue: '172.30.1.1:5000', name:'IMAGEREGISTRY', description:'open shift token')
+            }
+            environment {
+                openShiftHost = "----"
+                openShiftToken = "----"
+            }
+            stages{
+                stage("Wait for user to select module to build." ) {
+                    steps {
+                    script {
+                       /*  env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
+                         parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                            description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                         ])
+                        println("user selected module" + env.userInput); //Use this value to branch to different logic if needed
+                        */ 
+                        echo "--"
+                    }
+                }
+            
+               }     
+                stage('Pushing to Test - maingateway') {
+                    environment {
+                        projectName = 'rh-test'
+                        imageNameSpace = 'rh-dev'
+                        srcTag = 'latest'
+                        destTag = 'promoteTest'
+                        serviceName = 'maingateway-service'
+                    }
+                    steps {
+                        echo "Deploy to ${projectName} "
+                        promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', params.IMAGEREGISTRY,env.imageNameSpace, env.destTag, env.projectName)    
+                        promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                    }
+                }
+                stage('Pushing to Prod - maingateway') {
+                    environment {
+                        projectName = 'rh-prod'
+                        imageNameSpace = 'rh-dev'
+                        srcTag = 'latest'
+                        destTag = 'promoteProd'
+                        serviceName = 'maingateway-service'
+                    }
+                    steps {
+                        echo "Deploy to ${projectName} "
+                        //promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service',params.IMAGEREGISTRY, env.imageNameSpace, env.destTag, env.projectName)    
+                        //promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                    }
+                }
+              }
+            }
+            def promoteServiceSetup(openShiftHost, openShiftToken, svcName, registry, imageNameSpace, tagName, projName) {
+                try {
+                    sh """ 
+                        oc create dc ${svcName} --image=${registry}/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 2> /dev/null 
+                        oc deploy ${svcName} --cancel -n ${projName}  2> /dev/null
+                        oc expose dc ${svcName} --port=8080 -n ${projName}  2> /dev/null
+                        oc expose svc ${svcName} --name=${svcName} -n ${projName}  2> /dev/null
+                    """
+                } catch (Exception e) {
+                  echo "skip dc/svc/route creation related exception, the resource may already exist. " + e.getMessage();
+                }
+            }
+            def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
+                echo  "hello method out   ${projName} "
+                openshiftTag(namespace: imageNamespace,
+                              srcStream: svcName,
+                              srcTag: sourceTag,
+                              destStream: svcName,
+                              destTag: destinationTag)
+
+                openshiftDeploy(namespace: projName,
+                             deploymentConfig: svcName,
+                             waitTime: '300000')
+            }
+
+            def build(folderName) {
+                sh """
+
+                cd ${folderName}
+                
+                mvn package -Dmaven.test.skip=true 
+                """
+
+            }
+            def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
+                sh """
+                cd ${folderName}
+
+                oc project ${projName} 
+
+                mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+                """
+            }
+        env:
+        - name: GIT_BRANCH
+          value: ${GIT_BRANCH}
+        - name: GIT_REPO
+          value: ${GIT_REPO}
+        - name: OPENSHIFT_TOKEN 
+          value: ${OPENSHIFT_TOKEN}
+        - name: DEPLOY_MODULE 
+          value: ${DEPLOY_MODULE}
+        - name: IMAGEREGISTRY 
+          value: ${IMAGEREGISTRY}
+parameters:
+- name: GIT_REPO
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+  required: true
+- name: GIT_BRANCH
+  value: master
+  required: true
+- name: IMAGEREGISTRY
+  value: ----- 
+  required: true
+- name: OPENSHIFT_TOKEN 
+  value: token_value 
+  required: true
+- name: DEPLOY_MODULE 
+  value: all
+  required: false

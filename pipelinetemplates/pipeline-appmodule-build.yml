@@ -85,7 +85,7 @@ parameters:
   value: password 
   required: false
 - name: IMAGEREGISTRY
-  value: ----- 
+  value: 172.30.1.1:5000
   required: true
 - name: IMAGENAMESPACE 
   value: rh-dev 
