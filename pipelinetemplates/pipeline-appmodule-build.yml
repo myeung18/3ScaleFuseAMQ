@@ -51,6 +51,8 @@ objects:
           value: ${MYSQL_PWD}
         - name: IMAGENAMESPACE 
           value: ${IMAGENAMESPACE}
+        - name: IMAGEREGISTRY 
+          value: ${IMAGEREGISTRY}
 parameters:
 - name: GIT_REPO
   value: https://github.com/myeung18/3ScaleFuseAMQ.git
@@ -82,6 +84,9 @@ parameters:
 - name: MYSQL_PWD
   value: password 
   required: false
+- name: IMAGEREGISTRY
+  value: ----- 
+  required: true
 - name: IMAGENAMESPACE 
   value: rh-dev 
   required: false
