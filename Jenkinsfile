@@ -7,13 +7,14 @@ pipeline {
     parameters{ 
         string (defaultValue: 'notinuse', name:'OPENSHIFT_HOST', description:'open shift cluster url')
         string (defaultValue: 'notinuse', name:'OPENSHIFT_TOKEN', description:'open shift token')
+        string (defaultValue: 'docker-registry.default.svc:5000', name:'IMAGE_REGISTRY', description:'open shift token')
+        string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
         string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
         string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
         string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
         string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
-        string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
+        string (defaultValue: 'dbuser', name:'MYSQL_USER', description:'My Sql user name')
         string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
-        string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
     }
     stages {
         stage('Wait for user to select module to build.') {
@@ -114,7 +115,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'maingateway-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'maingateway-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,'maingateway-service', env.srcTag, env.destTag)
             }
         }
@@ -126,7 +127,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
@@ -138,7 +139,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
@@ -150,7 +151,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
@@ -180,8 +181,8 @@ pipeline {
             steps {
                 echo 'Deploy to ${PROD_PROJECT} '
                 
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, env.serviceName, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
-                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, env.serviceName,  env.srcTag, env.destTag)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'maingateway-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'maingateway-service',  env.srcTag, env.destTag)
             }
         }
         stage('Pushing to Prod - fisuser') {
@@ -197,7 +198,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
@@ -214,7 +215,7 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
@@ -231,20 +232,24 @@ pipeline {
             }
             steps {
                 echo "Deploy to ${PROD_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui', params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
+                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'nodejsalert-ui', env.srcTag, env.destTag)
             }
         }
     }
 }
 
-def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
+def promoteServiceSetup(openShiftHost, openShiftToken, svcName,registry,imageNameSpace, tagName, projName) {
+    try {
     sh """ 
-        oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 
-        oc deploy ${svcName} --cancel -n ${projName}
-        oc expose dc ${svcName} --port=8080 -n ${projName}
-        oc expose svc ${svcName} --name=${svcName} -n ${projName}
+        oc create dc ${svcName} --image=${registry}/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 2> /dev/null  
+        oc deploy ${svcName} --cancel -n ${projName} 2> /dev/null 
+        oc expose dc ${svcName} --port=8080 -n ${projName} 2> /dev/null 
+        oc expose svc ${svcName} --name=${svcName} -n ${projName} 2> /dev/null 
     """
+    } catch (Exception e) {
+      echo "skip dc/svc/route creation related exception, the resource may already exist. " + e.getMessage();
+    }
 
 }
 def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
