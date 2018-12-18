@@ -79,7 +79,7 @@ parameters:
   value: rh-prod
   required: false
 - name: MYSQL_USER 
-  value: root 
+  value: dbuser 
   required: false
 - name: MYSQL_PWD
   value: password 
