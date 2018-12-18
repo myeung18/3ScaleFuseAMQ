@@ -19,10 +19,10 @@ pipeline {
         stage('Build Service') {
             steps {
                 echo "Building.. ${MODULE_NAME} "
-                #build(params.MODULE_NAME)
+                //build(params.MODULE_NAME)
 
                 echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
-                #deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                //deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
 
             }
         }
