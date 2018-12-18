@@ -13,16 +13,16 @@ pipeline {
         string (defaultValue: 'dbuser', name:'MYSQL_USER', description:'My Sql user name')
         string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
         string (defaultValue: 'rh-dev', name:'IMAGENAMESPACE', description:'name space where image deployed')
-        string (defaultValue: 'fisuser-service', name:'MODULE_NAME', description:'Module of this build')
+        string (defaultValue: 'service-name:', name:'MODULE_NAME', description:'Module of this build')
     }
     stages {
         stage('Build Service') {
             steps {
                 echo "Building.. ${MODULE_NAME} "
-                //build(params.MODULE_NAME)
+                build(params.MODULE_NAME)
 
                 echo "Deploying ${MODULE_NAME} to ${CICD_PROJECT}"
-                //deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
+                deploy(params.MODULE_NAME, params.CICD_PROJECT, params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MYSQL_USER, params.MYSQL_PWD)
 
             }
         }
@@ -43,7 +43,7 @@ pipeline {
                 destTag = 'promoteProd'
             }
             steps {
-                echo 'Deploy ${MODULE_NAME} to ${PROD_PROJECT} '
+                echo "Deploy ${MODULE_NAME} to ${PROD_PROJECT} "
                 
                 promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, params.MODULE_NAME, params.IMAGENAMESPACE, env.destTag, params.PROD_PROJECT)
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, params.MODULE_NAME,  env.srcTag, env.destTag)
@@ -62,7 +62,6 @@ def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, 
 
 }
 def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
-    echo  "hello method out   ${projName} "
     openshiftTag(namespace: imageNamespace,
                   srcStream: svcName,
                   srcTag: sourceTag,
