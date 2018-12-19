@@ -25,7 +25,7 @@ pipeline {
                        description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
                     ])
         
-                    println("user selected module " + env.userSelModule);
+                    println("User selected module " + env.userSelModule);
                 }
             }
         }
@@ -107,17 +107,23 @@ pipeline {
                 } 
             }
         }
+
         stage('Pushing to Test - maingateway') {
-            environment {
-                srcTag = 'latest'
-                destTag = 'promoteTest'
-                serviceName = 'maingateway-service'
-            }
-            steps {
-                echo "Deploy to ${TEST_PROJECT} "
-                promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'maingateway-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
-                promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,'maingateway-service', env.srcTag, env.destTag)
-            }
+           environment {
+               srcTag = 'latest'
+               destTag = 'promoteTest'
+               serviceName = 'maingateway-service'
+           }
+           when {
+               expression {
+                   env.userInput == 'Gateway' || env.userInput == 'All'
+               }
+           }
+           steps {
+               echo "Deploy to ${TEST_PROJECT} "
+               promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'maingateway-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
+               promoteService(params.IMAGENAMESPACE, params.TEST_PROJECT,'maingateway-service', env.srcTag, env.destTag)
+           }
         }
         stage('Pushing to Test - fisuser') {
             environment {
@@ -125,6 +131,11 @@ pipeline {
                 destTag = 'promoteTest'
                 serviceName = 'fisuser-service'
             }
+           when {
+               expression {
+                   env.userInput == 'FisUser' || env.userInput == 'All'
+               }
+           }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
                 promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisuser-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)    
@@ -137,6 +148,11 @@ pipeline {
                 destTag = 'promoteTest'
                 serviceName = 'fisalert-service'
             }
+           when {
+               expression {
+                   env.userInput == 'FisAlert' || env.userInput == 'All'
+               }
+           }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
                 promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'fisalert-service',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
@@ -149,6 +165,11 @@ pipeline {
                 destTag = 'promoteTest'
                 serviceName = 'nodejsalert-service'
             }
+           when {
+               expression {
+                   env.userInput == 'UI' || env.userInput == 'All'
+               }
+           }
             steps {
                 echo "Deploy to ${TEST_PROJECT} "
                 promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, 'nodejsalert-ui',params.IMAGE_REGISTRY, params.IMAGENAMESPACE, env.destTag, params.TEST_PROJECT)
@@ -163,7 +184,7 @@ pipeline {
                        description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
                     ])
         
-                    println("user selected module " + env.userSelModule);
+                    println("User selected module " + env.userSelModule);
                 }
             }
         }
@@ -271,7 +292,7 @@ def build(folderName) {
 
     cd ${folderName}
     
-    #mvn package -Dmaven.test.skip=true 
+    mvn package -Dmaven.test.skip=true 
     """
 
 }
@@ -281,6 +302,6 @@ def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysql
 
     oc project ${projName} 
 
-    #mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+    mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
     """
 }
