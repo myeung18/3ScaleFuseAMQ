@@ -69,13 +69,13 @@ parameters:
   value: rh-prod
   required: false
 - name: MYSQL_USER 
-  value: root 
+  value: dbuser 
   required: false
 - name: MYSQL_PWD
   value: password 
   required: false
 - name: IMAGEREGISTRY
-  value: ----- 
+  value: 172.30.1.1:5000 
   required: true
 - name: IMAGENAMESPACE 
   value: rh-dev 

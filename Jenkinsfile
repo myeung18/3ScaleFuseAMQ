@@ -30,7 +30,7 @@ pipeline {
             }
         }
         stage('Build maingateway-service') {
-            environment { 
+            environment {
                 serviceName = 'maingateway-service'
             }
             when {
@@ -202,7 +202,7 @@ pipeline {
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisuser-service', env.srcTag, env.destTag)
             }
         }
-        stage('Pushing to prod - fisalert') {
+        stage('Pushing to Prod - fisalert') {
             environment {
                 srcTag = 'latest'
                 destTag = 'promoteProd'
@@ -219,7 +219,7 @@ pipeline {
                 promoteService(params.IMAGENAMESPACE, params.PROD_PROJECT, 'fisalert-service', env.srcTag, env.destTag)
             }
         }
-        stage('Pushing to prod - nodejsalert') {
+        stage('Pushing to Prod - nodejsalert') {
             environment {
               srcTag = 'latest'
               destTag = 'promoteProd'
@@ -271,7 +271,7 @@ def build(folderName) {
 
     cd ${folderName}
     
-    mvn package -Dmaven.test.skip=true 
+    #mvn package -Dmaven.test.skip=true 
     """
 
 }
@@ -281,6 +281,6 @@ def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysql
 
     oc project ${projName} 
 
-    mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+    #mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
     """
 }
