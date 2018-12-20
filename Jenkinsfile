@@ -20,10 +20,16 @@ pipeline {
         stage('Wait for user to select module to build.') {
             steps {
                 script {
-                    env.userSelModule = input(id: 'userInput', message: 'Please select which module to bulid?',
-                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
-                       description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
-                    ])
+                    try {
+                        timeout (time:600, unit:'SECONDS') {
+                            env.userSelModule = input(id: 'userInput', message: 'Please select which module to bulid?',
+                            parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                               description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                            ])
+                        }
+                    } catch (exception) {
+                      env.userSelModule='All'    
+                    }
         
                     println("User selected module " + env.userSelModule);
                 }
@@ -179,10 +185,16 @@ pipeline {
         stage('Wait for user to select module to push to production.') {
             steps {
                 script {
-                    env.userSelModule = input(id: 'userInput', message: 'Please select module to push to production?',
-                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
-                       description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
-                    ])
+                    try {
+                        timeout (time:2, unit:'DAYS') {
+                            env.userSelModule = input(id: 'userInput', message: 'Please select module to push to production?',
+                            parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                               description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                            ])
+                        } 
+                    } catch (exception) {
+                      env.userSelModule='---'    
+                    }
         
                     println("User selected module " + env.userSelModule);
                 }
