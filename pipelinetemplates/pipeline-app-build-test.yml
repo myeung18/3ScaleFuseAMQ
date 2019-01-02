@@ -41,7 +41,9 @@ objects:
             }
             stages{
                     stage ('source') {
-                        git branch: 'pipelines' 
+                        steps {
+                            git url: params.GIT_REPO, branch: params.GIT_BRANCH                
+                        }
                     }
                     stage("Wait for user to select module to build." ) {
                         steps {
@@ -57,12 +59,7 @@ objects:
                     }
                 
                   }     
-                  stage ("source") {
-                     steps {
-                         git 'https://github.com/myeung18/3ScaleFuseAMQ'
-                     }
-                  }
-                  stage('Build maingateway-service') {
+                   stage('Build maingateway-service') {
                       environment { 
                           serviceName = 'maingateway-service'
                           projectName = 'rh-dev'
@@ -216,7 +213,7 @@ objects:
           value: ${DEPLOY_MODULE}
 parameters:
 - name: GIT_REPO
-  value: https://github.com/myeung18/IntegrationApp-Automation.git
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
   required: true
 - name: GIT_BRANCH
   value: pipelines 
