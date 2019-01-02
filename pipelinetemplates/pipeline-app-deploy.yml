@@ -65,8 +65,9 @@ objects:
                     }
                     steps {
                         echo "Deploy to ${projectName} "
-                        promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', params.IMAGEREGISTRY,env.imageNameSpace, env.destTag, env.projectName)    
-                        promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                        deployToCluster('EngLab')
+                        //promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', params.IMAGEREGISTRY,env.imageNameSpace, env.destTag, env.projectName)    
+                        //promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
                     }
                 }
                 stage('Pushing to Prod - maingateway') {
@@ -95,6 +96,11 @@ objects:
                     """
                 } catch (Exception e) {
                   echo "skip dc/svc/route creation related exception, the resource may already exist. " + e.getMessage();
+                }
+            }
+            def deployToCluster(clusterName) {
+                openshift.withCluster( clusterName) {
+                    echo "In project: ${openshift.project()}"
                 }
             }
             def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {

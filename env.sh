@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export IP=master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:
-export USER=myeung
+export USER=developer
 
 export CICD_PROJECT=rh-automation
 export DEV_PROJECT=rh-dev

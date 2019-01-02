@@ -24,7 +24,7 @@ objects:
                         label 'maven'
                     }
               }*/
-              agent any
+            agent any
             parameters{ 
               string (defaultValue: 'token value', name:'OPENSHIFT_TOKEN', description:'open shift token')
               string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
@@ -40,6 +40,9 @@ objects:
                 openShiftToken = "----"
             }
             stages{
+                    stage ('source') {
+                        git branch: 'pipelines' 
+                    }
                     stage("Wait for user to select module to build." ) {
                         steps {
                         script {
@@ -213,10 +216,10 @@ objects:
           value: ${DEPLOY_MODULE}
 parameters:
 - name: GIT_REPO
-  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+  value: https://github.com/myeung18/IntegrationApp-Automation.git
   required: true
 - name: GIT_BRANCH
-  value: master
+  value: pipelines 
   required: true
 - name: OPENSHIFT_TOKEN 
   value: token_value 
