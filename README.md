@@ -45,10 +45,8 @@ This demo contains below applications.
     • Node.js Web application https://github.com/redhatHameed/3ScaleFuseAMQ/tree/master/nodejsalert-ui
     • 3scale (Openshift on-premises) environment
 
-### Automation of Applications in OpenShift.
-
-#### Build and deploy with pipelines
-
+## Automation of Applications in OpenShift
+### Build and deploy with pipelines
 ***The application works under [OpenShift](https://www.okd.io/) or [Minishift](https://www.okd.io/minishift/)***
 
 The following instructions assuming that you are using Minshift. But the same could be applied to OpenShift cluster as well.
@@ -56,45 +54,40 @@ The following instructions assuming that you are using Minshift. But the same co
 Download the source codes from git repository by either forking, or simply cloning it. 
 
 ```
-git clone https://github.com/myeung18/IntegrationApp-Automation.git
+git clone https://github.com/RHsyseng/IntegrationApp-Automation.git  
 ```
 Start up your Minishift environment by running
 
 ```
-minishift start --username <USERNAME> --password <PASSWORD>
+minishift start
 oc login -u developer
 ```
 
 Setup `rh-dev`, `rh-test` and `rh-prod` Minishift projects as the target environment (you may skip this step if you already have the environment ready, and this script will first delete the original projects in Minishift and create the new ones).
     
 ```
-./setup/setup.sh <openshfit userId>  #e.g. developer
+./setup/setup.sh <Minishift userId>  #e.g. developer
 ```
 
 Import the pipeline templates into your target project. For this case, it is `rh-dev`.
 
 ```
-switch to rh-dev project
+# switch to rh-dev project
 oc project rh-dev
 
-[import fisuser-service pipeline]
-
+# import fisuser-service pipeline
 oc new-app -f fisuser-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
 
-[import maingateway-service pipeline]
-
+# import maingateway-service pipeline
 oc new-app -f maingateway-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
 
-[import nodejsalert-ui pipeline]
-
+# import nodejsalert-ui pipeline
 oc new-app -f nodejsalert-ui/resources/pipeline-app-build.yml -p IMAGE_REGISTR=<Image name space>
 
-[import fisalert-service pipeline]
-
+# import fisalert-service pipeline
 oc new-app -f fisalert-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
 
-[import integration-master-pipeline]
-
+# import integration-master-pipeline
 oc new-app -f pipelinetemplates/pipeline-aggregated-build.yml -p IMAGE_REGISTRY=<Image name space>
 
 ```
@@ -112,8 +105,10 @@ TEST_PROJECT         rh-test
 PROD_PROJECT         rh-prod
 MYSQL_USER           dbuser            #your DB user account
 MYSQL_PWD            password          #DB user password
-IMAGER_EGISTRY       172.30.1.1:5000   #image registry, usually is the one in your Minishift where you do the build
+IMAGE_REGISTRY       172.30.1.1:5000   #image registry, usually is the one in your Minishift where you do the build
 IMAGE_NAMESPACE      rh-dev            #the namespace where you push the image in Minishift
+
+* If you have customized MYSQL_USER or MYSQL_PWD, please edit the nodejsalert-ui/config.js accordingly.
 ```
 After you have imported all the pipeline templates, you should have them in your Minishift under `Builds`, `Pipelines`.
 
