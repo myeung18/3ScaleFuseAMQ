@@ -49,24 +49,25 @@ This demo contains below applications.
 ### Build and deploy with pipelines
 ***The application works under [OpenShift](https://www.okd.io/) or [Minishift](https://www.okd.io/minishift/)***
 
-The following instructions assuming that you are using Minshift. But the same could be applied to OpenShift cluster as well.
+The following instructions assuming that you are using OpenShift. But the same could be applied to Minishift as well.
 
 Download the source codes from git repository by either forking, or simply cloning it. 
 
 ```
 git clone https://github.com/RHsyseng/IntegrationApp-Automation.git  
 ```
-Start up your Minishift environment by running
+Assume you have OpenShift cluster ready and running.
 
 ```
-minishift start
-oc login -u developer
+# login to the OpenShift
+oc login <OpenShift cluster url> --token=<openshift user login token>
+
 ```
 
-Setup `rh-dev`, `rh-test` and `rh-prod` Minishift projects as the target environment (you may skip this step if you already have the environment ready, and this script will first delete the original projects in Minishift and create the new ones).
+Setup `rh-dev`, `rh-test` and `rh-prod` OpenShift projects as the target environment (you may skip this step if you already have the environment ready, and this script will first delete the original projects in OpenShift and create the new ones).
     
 ```
-./setup/setup.sh <Minishift userId>  #e.g. developer
+./setup/setup.sh
 ```
 
 Import the pipeline templates into your target project. For this case, it is `rh-dev`.
@@ -105,12 +106,12 @@ TEST_PROJECT         rh-test
 PROD_PROJECT         rh-prod
 MYSQL_USER           dbuser            #your DB user account
 MYSQL_PWD            password          #DB user password
-IMAGE_REGISTRY       172.30.1.1:5000   #image registry, usually is the one in your Minishift where you do the build
-IMAGE_NAMESPACE      rh-dev            #the namespace where you push the image in Minishift
+IMAGE_REGISTRY       172.30.1.1:5000   #image registry, usually is the one in your OpenShift where you do the build
+IMAGE_NAMESPACE      rh-dev            #the namespace where you push the image in OpenShift
 
 * If you have customized MYSQL_USER or MYSQL_PWD, please edit the nodejsalert-ui/config.js accordingly.
 ```
-After you have imported all the pipeline templates, you should have them in your Minishift under `Builds`, `Pipelines`.
+After you have imported all the pipeline templates, you should have them in your OpenShift under `Builds`, `Pipelines`.
 
 ![Pipeline View](images/pipeline_import_view.png "Pipeline View")
 
@@ -118,7 +119,7 @@ Please start the pipeline from `maingateway-service-pipeline`, `fisuser-service-
 
 With `aggregated-pipeline`, you can build the entire application including all of the above modules mentioned. If you choose this pipeline, by default, it will build the entire application, but you will also be asked to select which individual module you want to bulid.  You will need to make your selection in your Jenkins console.
 
-Once the build is finished, in your Minishift, go to `rh-test` or `rh-prod`, nevigate to `Applications`, `Routes` and click on nodejsalert-ui URL to launch the application.
+Once the build is finished, in your OpenShift, go to `rh-test` or `rh-prod`, nevigate to `Applications`, `Routes` and click on nodejsalert-ui URL to launch the application.
 You should see the application and it is started with web front-end like this: 
 
 ![Application View](images/application_launch_view.png "Application View")
