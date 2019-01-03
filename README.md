@@ -60,7 +60,7 @@ Assume you have OpenShift cluster ready and running.
 
 ```
 # login to the OpenShift
-oc login <OpenShift cluster url> --token=<openshift user login token>
+oc login <OpenShift cluster url> --token=<OpenShift user login token>
 
 ```
 
