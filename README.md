@@ -82,7 +82,7 @@ oc new-app -f fisuser-service/src/main/resources/pipeline-app-build.yml -p IMAGE
 oc new-app -f maingateway-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
 
 # import nodejsalert-ui pipeline
-oc new-app -f nodejsalert-ui/resources/pipeline-app-build.yml -p IMAGE_REGISTR=<Image name space>
+oc new-app -f nodejsalert-ui/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
 
 # import fisalert-service pipeline
 oc new-app -f fisalert-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
