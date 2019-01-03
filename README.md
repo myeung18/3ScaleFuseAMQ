@@ -47,29 +47,31 @@ This demo contains below applications.
 
 ### Automation of Applications in OpenShift.
 
-**Build and deploy with pipelines**
+#### Build and deploy with pipelines
 
-***Install OpenShift Container Platform 3.5 in [CDK 3.0](https://developers.redhat.com/products/cdk/overview/)***
+***The application works under [OpenShift](https://www.okd.io/) or [Minishift](https://www.okd.io/minishift/)***
 
-Download the git repository by either forking, or simply cloning it. 
+The following instructions assuming that you are using Minshift. But the same could be applied to OpenShift cluster as well.
+
+Download the source codes from git repository by either forking, or simply cloning it. 
 
 ```
 git clone https://github.com/myeung18/IntegrationApp-Automation.git
 ```
-Start up your OpenShift environment by running
+Start up your Minishift environment by running
 
 ```
 minishift start --username <USERNAME> --password <PASSWORD>
 oc login -u developer
 ```
 
-Setup `rh-dev`, `rh-test` and `rh-prod` OpenShift projects as the CICD target environment (you may skip this step if you already have the environment ready, and this script will first delete the original projects in OpenShift and create new ones).
+Setup `rh-dev`, `rh-test` and `rh-prod` Minishift projects as the target environment (you may skip this step if you already have the environment ready, and this script will first delete the original projects in Minishift and create the new ones).
     
 ```
 ./setup/setup.sh <openshfit userId>  #e.g. developer
 ```
 
-Import the pipeline templates into your CICD project. For this case, it is `rh-dev`.
+Import the pipeline templates into your target project. For this case, it is `rh-dev`.
 
 ```
 switch to rh-dev project
@@ -97,32 +99,31 @@ oc new-app -f pipelinetemplates/pipeline-aggregated-build.yml -p IMAGE_REGISTRY=
 
 ```
 
-You can also customize the pipeline by changing the following the parameters:
+You can also customize the pipeline by changing the following parameters:
 
 ```
 GIT_REPO             https://github.com/RHsyseng/IntegrationApp-Automation.git
 GIT_BRANCH           master            #git branch where you want to build
 OPENSHIFT_HOST       <leave it for now, will be used in future release>
 OPENSHIFT_TOKEN      <leave it for now, will be used in future release>
-MODULE_NAME          <module_name>    #the Java/NodeJs sourcode module name for this template to build 
-                                            e.g.: (maingateway-service/fisuser-service/fisalert-service/nodejsalert-ui)
-CICD_PROJECT         rh-dev                
+MODULE_NAME          <module_name>     #the Java/Node.js module name for this template to build, use default would be fine.
+DEV_PROJECT          rh-dev                
 TEST_PROJECT         rh-test
 PROD_PROJECT         rh-prod
 MYSQL_USER           dbuser            #your DB user account
 MYSQL_PWD            password          #DB user password
-IMAGER_EGISTRY        172.30.1.1:5000   #image registry, usually is the one in your OpenShift where you do the build
-IMAGE_NAMESPACE       rh-dev            #the namespace where you push the image in OpenShift
+IMAGER_EGISTRY       172.30.1.1:5000   #image registry, usually is the one in your Minishift where you do the build
+IMAGE_NAMESPACE      rh-dev            #the namespace where you push the image in Minishift
 ```
-After you have imported all the pipeline templates, you should have them in your OpenShft under `Builds`, `Pipelines`.
+After you have imported all the pipeline templates, you should have them in your Minishift under `Builds`, `Pipelines`.
 
 ![Pipeline View](images/pipeline_import_view.png "Pipeline View")
 
 Please start the pipeline from `maingateway-service-pipeline`, `fisuser-service-pipeline`, `fisalert-service-pipeline`, and then `nodejsalert-ui-pipeline`.
 
-With `integration-master-pipeline`, you can build the entire application including all of the above modules mentione. If you choose this pipeline, by default, it will build the entire application, but you will also be asked and to select which individual module you want to bulid.  You will need to make your selection in your Jenkins console.
+With `aggregated-pipeline`, you can build the entire application including all of the above modules mentioned. If you choose this pipeline, by default, it will build the entire application, but you will also be asked to select which individual module you want to bulid.  You will need to make your selection in your Jenkins console.
 
-Once the build are finished, in your OpenShift, go to `rh-test` or `rh-prod`, nevigate to `Applications`, `Routes` and click on nodejsalert-ui URL to launch the application.
+Once the build is finished, in your Minishift, go to `rh-test` or `rh-prod`, nevigate to `Applications`, `Routes` and click on nodejsalert-ui URL to launch the application.
 You should see the application and it is started with web front-end like this: 
 
 ![Application View](images/application_launch_view.png "Application View")
