@@ -45,6 +45,7 @@ This demo contains below applications.
     • Node.js Web application https://github.com/redhatHameed/3ScaleFuseAMQ/tree/master/nodejsalert-ui
     • 3scale (Openshift on-premises) environment
 
+
 ## Automation of Applications in OpenShift
 ### Build and deploy with pipelines
 ***The application works under [OpenShift](https://www.okd.io/) or [Minishift](https://www.okd.io/minishift/)***
@@ -69,49 +70,76 @@ Setup `rh-dev`, `rh-test` and `rh-prod` OpenShift projects as the target environ
 ```
 ./setup/setup.sh
 ```
+If you ran the above setup.sh, the pipelines are automatically imported. In case you want to further customize the pipelines, please following the instructions below.
 
-Import the pipeline templates into your target project. For this case, it is `rh-dev`.
+You can also customize the pipelines by changing their parameters.  Different templates have different parameters but they are all listed below:
+```
+Parameters           Default                            Explanations
+GIT_REPO             https://github.com/RHsyseng/IntegrationApp-Automation.git
+GIT_BRANCH           master                             #git branch where you want to build
+OPENSHIFT_HOST       <leave it for now, will be used in future release>
+OPENSHIFT_TOKEN      <leave it for now, will be used in future release>
+DEV_PROJECT          rh-dev                
+TEST_PROJECT         rh-test
+PROD_PROJECT         rh-prod
+MYSQL_USER           dbuser                             #your DB user account
+MYSQL_PWD            password                           #DB user password
+IMAGE_REGISTRY       docker-registry.default.svc:5000   #image registry, typically the docker registry service of your OpenShift environment
+IMAGE_NAMESPACE      rh-dev                             #the OpenShift project/namespace where you built and pushed the image
 
+* If you have customized MYSQL_USER or MYSQL_PWD, please edit the nodejsalert-ui/config.js accordingly.
+
+```
+To list the parameters of each template:
+```
+# list for fisuser-service pipeline
+oc process --parameters -f fisuser-service/src/main/resources/pipeline-app-build.yml
+
+# list for maingateway-service pipeline
+oc process --parameters -f  maingateway-service/src/main/resources/pipeline-app-build.yml
+
+# list for nodejsalert-ui pipeline
+oc process --parameters -f  nodejsalert-ui/resources/pipeline-app-build.yml
+
+# list for fisalert-service pipeline
+oc process --parameters -f  fisalert-service/src/main/resources/pipeline-app-build.yml
+
+# list for aggregated-pipeline
+oc process --parameters -f  pipelinetemplates/pipeline-aggregated-build.yml
+
+```
+
+To replace the existing pipelines with your customized pipelines:
 ```
 # switch to rh-dev project
 oc project rh-dev
 
+# Remove the exisiting pipeline that you want to customize.
+oc delete bc fisuser-service-pipeline
+oc delete bc maingateway-service-pipeline
+oc delete bc nodejsalert-ui-pipeline
+oc delete bc fisalert-service-pipeline
+oc delete bc aggregated-pipeline
+
+
 # import fisuser-service pipeline
-oc new-app -f fisuser-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
+oc new-app -f fisuser-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=docker-registry.default.svc:5000 -p IMAGE_NAMESPACE=rh-dev -p DEV_PROJECT=rh-dev -p TEST_PROJECT=rh-test -p PROD_PROJECT=rh-prod
 
 # import maingateway-service pipeline
-oc new-app -f maingateway-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
+oc new-app -f maingateway-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=docker-registry.default.svc:5000 -p IMAGE_NAMESPACE=rh-dev -p DEV_PROJECT=rh-dev -p TEST_PROJECT=rh-test -p PROD_PROJECT=rh-prod
 
 # import nodejsalert-ui pipeline
-oc new-app -f nodejsalert-ui/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
+oc new-app -f nodejsalert-ui/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=docker-registry.default.svc:5000 -p IMAGE_NAMESPACE=rh-dev -p DEV_PROJECT=rh-dev -p TEST_PROJECT=rh-test -p PROD_PROJECT=rh-prod
 
 # import fisalert-service pipeline
-oc new-app -f fisalert-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=<Image name space>
+oc new-app -f fisalert-service/src/main/resources/pipeline-app-build.yml -p IMAGE_REGISTRY=docker-registry.default.svc:5000 -p IMAGE_NAMESPACE=rh-dev -p DEV_PROJECT=rh-dev -p TEST_PROJECT=rh-test -p PROD_PROJECT=rh-prod
 
-# import integration-master-pipeline
-oc new-app -f pipelinetemplates/pipeline-aggregated-build.yml -p IMAGE_REGISTRY=<Image name space>
-
-```
-
-You can also customize the pipeline by changing the following parameters:
+# import aggregated-pipeline
+oc new-app -f pipelinetemplates/pipeline-aggregated-build.yml -p IMAGE_REGISTRY=docker-registry.default.svc:5000 -p IMAGE_NAMESPACE=rh-dev -p DEV_PROJECT=rh-dev -p TEST_PROJECT=rh-test -p PROD_PROJECT=rh-prod
 
 ```
-GIT_REPO             https://github.com/RHsyseng/IntegrationApp-Automation.git
-GIT_BRANCH           master            #git branch where you want to build
-OPENSHIFT_HOST       <leave it for now, will be used in future release>
-OPENSHIFT_TOKEN      <leave it for now, will be used in future release>
-MODULE_NAME          <module_name>     #the Java/Node.js module name for this template to build, use default would be fine.
-DEV_PROJECT          rh-dev                
-TEST_PROJECT         rh-test
-PROD_PROJECT         rh-prod
-MYSQL_USER           dbuser            #your DB user account
-MYSQL_PWD            password          #DB user password
-IMAGE_REGISTRY       172.30.1.1:5000   #image registry, usually is the one in your OpenShift where you do the build
-IMAGE_NAMESPACE      rh-dev            #the namespace where you push the image in OpenShift
 
-* If you have customized MYSQL_USER or MYSQL_PWD, please edit the nodejsalert-ui/config.js accordingly.
-```
-After you have imported all the pipeline templates, you should have them in your OpenShift under `Builds`, `Pipelines`.
+After you have imported all of the pipeline templates, you should have them under `Builds`, `Pipelines` of the selected OpenShift project.
 
 ![Pipeline View](images/pipeline_import_view.png "Pipeline View")
 
