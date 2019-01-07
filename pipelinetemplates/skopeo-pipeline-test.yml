@@ -1,0 +1,57 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+    template: shipping-image-pipeline-test
+metadata:
+  annotations:
+    description: RHTE Deployment Pipeline
+  name: shipping-image-pipeline-test
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+    name: shipping-image-pipeline-test
+    name: shipping-image-pipeline-test
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+            pipeline {   
+              agent any
+              stages{
+                  stage ("source") {
+                      steps {
+                        git url: params.GIT_REPO, branch: params.GIT_BRANCH                
+                      }
+                    
+                  }
+                  stage("Hello stage") {           
+                      steps { 
+                          script {
+                            echo 'Dean to build it'
+                          
+                          }
+
+                      }
+                  }
+              }
+            }
+        env:
+        - name: GIT_BRANCH
+          value: ${GIT_BRANCH}
+        - name: GIT_REPO
+          value: ${GIT_REPO}
+        - name: OPENSHIFT_TOKEN 
+          value: ${OPENSHIFT_TOKEN}
+parameters:
+- name: GIT_REPO
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+  required: true
+- name: GIT_BRANCH
+  value: master
+  required: true
+- name: OPENSHIFT_TOKEN 
+  value: token_value 
+  required: true

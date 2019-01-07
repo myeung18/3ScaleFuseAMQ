@@ -27,13 +27,14 @@ objects:
               agent any
             parameters{ 
               string (defaultValue: 'token value', name:'OPENSHIFT_TOKEN', description:'open shift token')
-              string (defaultValue: 'all', name:'DEPLOY_MODULE', description:'target module to work on')
               string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
               string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
               string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
               string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
               string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
               string (defaultValue: 'fisuser', name:'MODULE_NAME', description:'Module of this build')
+              booleanParam (defaultValue: false, name:'SELECT_BUILD_MODULE', description:'Select module to build - default: build all (dev and test)')
+              booleanParam (defaultValue: false, name:'SELECT_DEPLOY_TO_PROD', description:'Select module to deploy - default: no deployment to production')
             }
             environment {
                 openShiftHost = "----"
@@ -41,14 +42,18 @@ objects:
             }
             stages{
                     stage("Wait for user to select module to build." ) {
+                        when {
+                              expression {
+                                  params.SELECT_BUILD_MODULE == true
+                              }
+                        } 
                         steps {
                         script {
-                           /*  env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
+                           env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
                              parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
                                 description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
                              ])
                             println("user selected module" + env.userInput); //Use this value to branch to different logic if needed
-                            */ 
                             echo "--"
                         }
                     }
@@ -110,8 +115,8 @@ objects:
                         }
                         steps {
                             echo "Deploy to ${projectName} "
-                            promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
-                            promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                           // promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
+                           // promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
                         }
                     }
                    stage('Pushing to Test - nodejsalert') {
@@ -124,10 +129,35 @@ objects:
                       }
                       steps {
                           echo "Deploy to ${projectName} "
-                          promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
-                          promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
+                          //promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                          //promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
                       }
                   }
+                  
+                    stage('Wait for user to select module to push to production.') {
+                        when {
+                            expression {
+                                params.SELECT_DEPLOY_TO_PROD == true
+                                } 
+                        }   
+                        steps {
+                            script {
+                                try {
+                                    timeout (time:2, unit:'DAYS') {
+                                        env.userSelModule = input(id: 'userInput', message: 'Please select module to push to production?',
+                                        parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                                           description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                                        ])
+                                    } 
+                                } catch (exception) {
+                                  env.userSelModule='---'    
+                                }
+                    
+                                println("User selected module " + env.userSelModule);
+                            }
+                        }
+                    }
+
                     stage('Pushing to Prod - maingateway') {
                         environment {
                             projectName = 'rh-prod'
@@ -135,6 +165,11 @@ objects:
                             srcTag = 'latest'
                             destTag = 'promoteProd'
                             serviceName = 'maingateway-service'
+                        }
+                        when {
+                          expression {
+                              env.userSelModule == 'Gateway' || env.userSelModule == 'All'
+                          }
                         }
                         steps {
                             echo "Deploy to ${projectName} "
@@ -150,6 +185,11 @@ objects:
                           destTag = 'promoteProd'
                           serviceName = 'nodejsalert-service'
                       }
+                        when {
+                          expression {
+                              env.userSelModule == 'UI' || env.userSelModule == 'All'
+                          }
+                        }
                       steps {
                           echo "Deploy to ${projectName} "
                           //promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
@@ -209,8 +249,6 @@ objects:
           value: ${GIT_REPO}
         - name: OPENSHIFT_TOKEN 
           value: ${OPENSHIFT_TOKEN}
-        - name: DEPLOY_MODULE 
-          value: ${DEPLOY_MODULE}
 parameters:
 - name: GIT_REPO
   value: https://github.com/myeung18/3ScaleFuseAMQ.git
@@ -221,6 +259,3 @@ parameters:
 - name: OPENSHIFT_TOKEN 
   value: token_value 
   required: true
-- name: DEPLOY_MODULE 
-  value: all
-  required: false
