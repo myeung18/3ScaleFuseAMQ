@@ -1,0 +1,76 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+    template: mirror-image-pipeline-test
+metadata:
+  annotations:
+    description: RHTE Deployment Pipeline
+  name: mirror-image-pipeline-test
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+    name: mirror-image-pipeline-test
+    name: mirror-image-pipeline-test
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+            pipeline {   
+              agent any
+              parameters {
+                string (defaultValue: 'EngLab', name:'CLUSTER', description:'open shift cluster')
+              }
+
+              stages{
+                  stage("Go to Lab") {           
+                      steps { 
+                          script {
+                            openshift.withCluster( params.CLUSTER ) {
+                                openshift.withProject( 'rh-prod' ) {
+                                    echo "Hello from project ${openshift.project()} in cluster ${openshift.cluster()}"
+
+                                    def saSelector = openshift.selector( 'serviceaccount' )
+                                
+                                    // Prints `oc describe serviceaccount` to Jenkins console
+                                    saSelector.describe()
+
+                                }
+                            }
+                          }
+                      }
+                  }
+                  stage('oc image mirror') {
+                    steps {
+                        script {
+                            withDockerRegistry([credentialsId:"s1T4gBXdmYdN754cg9OMUcdInpeWWWdOFBwTgcMranQ", url: "https://192.168.99.100:8443"]) {
+                              withDockerRegistry([credentialsId: "fgxlevWtjliqisd3SYmnKbw6qyu0O74v4EAoO581TAs", url: "https://master.rhdp.ocp.cloud.lab.eng.bos.redhat.com:8443"]) {
+                                sh """
+                                  oc image mirror --insecure=true 172.30.1.1:5000/rh-dev/maingateway-service:latest  docker-registry.default.svc:5000/rh-test/maingateway-service:latest
+                                  """
+                              }
+                            }
+                        }
+                    }
+                  }
+              }
+            }
+        env:
+        - name: GIT_BRANCH
+          value: ${GIT_BRANCH}
+        - name: GIT_REPO
+          value: ${GIT_REPO}
+        - name: OPENSHIFT_TOKEN 
+          value: ${OPENSHIFT_TOKEN}
+parameters:
+- name: GIT_REPO
+  value: https://github.com/myeung18/3ScaleFuseAMQ.git
+  required: true
+- name: GIT_BRANCH
+  value: master
+  required: true
+- name: OPENSHIFT_TOKEN 
+  value: token_value 
+  required: true
