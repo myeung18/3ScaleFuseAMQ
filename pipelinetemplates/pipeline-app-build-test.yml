@@ -18,232 +18,256 @@ objects:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
         jenkinsfile: |-
-            pipeline {   
-              /*agent {
-                    node {
-                        label 'maven'
-                    }
-              }*/
-              agent any
-            parameters{ 
-              string (defaultValue: 'token value', name:'OPENSHIFT_TOKEN', description:'open shift token')
-              string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
-              string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
-              string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
-              string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
-              string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
-              string (defaultValue: 'fisuser', name:'MODULE_NAME', description:'Module of this build')
-              booleanParam (defaultValue: false, name:'SELECT_BUILD_MODULE', description:'Select module to build - default: build all (dev and test)')
-              booleanParam (defaultValue: false, name:'SELECT_DEPLOY_TO_PROD', description:'Select module to deploy - default: no deployment to production')
-            }
-            environment {
-                openShiftHost = "----"
-                openShiftToken = "----"
-            }
-            stages{
-                    stage("Wait for user to select module to build." ) {
-                        when {
-                              expression {
-                                  params.SELECT_BUILD_MODULE == true
-                              }
-                        } 
-                        steps {
-                            script {
-                                timeout (time:180, unit:'SECONDS') {
-                                       env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
-                                         parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
-                                            description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
-                                         ])
-                                        println("user selected module" + env.userInput); //Use this value to branch to different logic if needed
-                                        echo "--"
+             pipeline {   
+                /*agent {
+                      node {
+                          label 'maven'
+                      }
+                }*/
+                agent any
+              parameters{ 
+                string (defaultValue: 'token value', name:'OPENSHIFT_TOKEN', description:'open shift token')
+                string (defaultValue: 'rh-dev', name:'CICD_PROJECT', description:'build or development project')
+                string (defaultValue: 'rh-test', name:'TEST_PROJECT', description:'Test project')
+                string (defaultValue: 'rh-prod', name:'PROD_PROJECT', description:'Production project')
+                string (defaultValue: 'root', name:'MYSQL_USER', description:'My Sql user name')
+                string (defaultValue: 'password', name:'MYSQL_PWD', description:'My Sql user password')
+                string (defaultValue: 'fisuser', name:'MODULE_NAME', description:'Module of this build')
+                     booleanParam (defaultValue: false, name:'SELECT_BUILD_MODULE', description:'Select module to build (default: build all to dev and test)')
+                      booleanParam (defaultValue: false, name:'SELECT_DEPLOY_TO_PROD', description:'Approval to deploy to Production (default: no deployment to production')
+               
+              }
+
+              environment {
+                  openShiftHost = "----"
+                  openShiftToken = "----"
+
+              }
+
+              stages{
+                      stage("Wait for user to select module to build." ) {
+                          when {
+                                expression {
+                                    params.SELECT_BUILD_MODULE == true
                                 }
+                          } 
+                          steps {
+                              script {
+                                try {
+                                        timeout (time:180, unit:'SECONDS') {
+                                         env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
+                                           parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                                              description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                                           ])
+                                        }
+                                        println("user selected module " + env.userInput);
+                                } catch (exception) {
+                                  echo exception
+                                  env.userInput='All'
+                                }
+                                println("user selected module " + env.userInput); //Use this value to branch to different logic if needed
+                                echo "--"
+                              }
+                          }
+                    }     
+                    stage ("source") {
+                       steps {
+                           git 'https://github.com/myeung18/3ScaleFuseAMQ'
+                       }
+                    }
+                    stage('Build maingateway-service') {
+                        environment { 
+                            serviceName = 'maingateway-service'
+                            projectName = 'rh-dev'
+                        }
+                        when {
+                            expression {
+                                env.userInput == 'Gateway' || env.userInput == 'All' || params.SELECT_BUILD_MODULE == false
                             }
                         }
-                
-                  }     
-                  stage ("source") {
-                     steps {
-                         git 'https://github.com/myeung18/3ScaleFuseAMQ'
-                     }
-                  }
-                  stage('Build maingateway-service') {
-                      environment { 
-                          serviceName = 'maingateway-service'
-                          projectName = 'rh-dev'
+                        steps {
+                            echo "Building.. ${serviceName} "
+                            //build(env.serviceName)
+
+                            echo "Deploying ${serviceName} to ${projectName}"
+                            //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
+
+                        }
+                    }
+                    stage('Build nodejsalert-ui') {
+                        environment { 
+                            serviceName = 'nodejsalert-ui'
+                            projectName = 'rh-dev'
+                        }
+                        when {
+                            expression {
+                                env.userInput == 'UI' || env.userInput == 'All' || params.SELECT_BUILD_MODULE == false
+                            }
+                        }                  
+                        steps {
+                            echo "Building.. ${serviceName}"
+                            sh '''  
+                                ls -last 
+                            '''
+                            /*
+                            node ('nodejs') {
+                                git "https://github.com/myeung18/3ScaleFuseAMQ" 
+
+                                script {
+                                    sh """
+                                    cd ${serviceName}
+
+                                    oc project ${projectName}
+                                    npm install && npm run openshift
+                                    """
+                                }
+                            } 
+                            */
+                        }
+                    }
+
+                      stage('Pushing to Test - maingateway') {
+                          environment {
+                              projectName = 'rh-test'
+                              imageNameSpace = 'rh-dev'
+                              srcTag = 'latest'
+                              destTag = 'promoteTest'
+                              serviceName = 'maingateway-service'
+                          }
+                          steps {
+                              echo "Deploy to ${projectName} "
+                             // promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
+                             // promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                          }
                       }
-                      steps {
-                          echo "Building.. ${serviceName} "
-                          //build(env.serviceName)
-
-                          echo "Deploying ${serviceName} to ${projectName}"
-                          //deploy(env.serviceName, env.projectName, env.openShiftHost, env.openShiftToken, env.mySqlUser, env.mySqlPwd)
-
-                      }
-                  }
-                  stage('Build nodejsalert-ui') {
-                      environment { 
-                          serviceName = 'nodejsalert-ui'
-                          projectName = 'rh-dev'
-                      }
-                      steps {
-                          echo 'Building.. ${serviceName}'
-                          sh '''  
-                              ls -last 
-                          '''
-                          /*
-                          node ('nodejs') {
-                              git "https://github.com/myeung18/3ScaleFuseAMQ" 
-
-                              script {
-                                  sh """
-                                  cd ${serviceName}
-
-                                  oc project ${projectName}
-                                  npm install && npm run openshift
-                                  """
-                              }
-                          } 
-                          */
-                      }
-                  }
-
-                    stage('Pushing to Test - maingateway') {
+                     stage('Pushing to Test - nodejsalert') {
                         environment {
                             projectName = 'rh-test'
                             imageNameSpace = 'rh-dev'
                             srcTag = 'latest'
                             destTag = 'promoteTest'
-                            serviceName = 'maingateway-service'
+                            serviceName = 'nodejsalert-service'
                         }
                         steps {
                             echo "Deploy to ${projectName} "
-                           // promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
-                           // promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                            //promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                            //promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
                         }
                     }
-                   stage('Pushing to Test - nodejsalert') {
-                      environment {
-                          projectName = 'rh-test'
-                          imageNameSpace = 'rh-dev'
-                          srcTag = 'latest'
-                          destTag = 'promoteTest'
-                          serviceName = 'nodejsalert-service'
-                      }
-                      steps {
-                          echo "Deploy to ${projectName} "
-                          //promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
-                          //promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
-                      }
-                  }
-                  
-                    stage('Wait for user to select module to push to production.') {
-                        when {
-                            expression {
-                                params.SELECT_DEPLOY_TO_PROD == true
-                                } 
-                        }   
-                        steps {
-                            script {
-                                try {
-                                    timeout (time:2, unit:'DAYS') {
-                                        env.userSelModule = input(id: 'userInput', message: 'Please select module to push to production?',
-                                        parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
-                                           description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
-                                        ])
-                                    } 
-                                } catch (exception) {
-                                  env.userSelModule='---'    
-                                }
                     
-                                println("User selected module " + env.userSelModule);
-                            }
-                        }
-                    }
+                      stage('Wait for user to select module to push to production.') {
+                          when {
+                              expression {
+                                  params.SELECT_DEPLOY_TO_PROD == true && params.SELECT_BUILD_MODULE == true
+                                  } 
+                          }   
+                          steps {
+                              script {
+                                  try {
+                                      timeout (time:2, unit:'DAYS') {
+                                          env.userProdApproval = input(id: 'userInput', message: "Do you approvel this build to promote to production? Selected build [" +  env.userInput + "]?")
+                                          env.userProdApproval = 'Approved'
+                                      } 
+                                  } catch (exception) {
+                                    env.userProdApproval='failed'    
+                                  }
+                      
+                                  println("User approval value: " + env.userProdApproval);
+                              }
+                          }
+                      }
 
-                    stage('Pushing to Prod - maingateway') {
+                      stage('Pushing to Prod - maingateway') {
+                          environment {
+                              projectName = 'rh-prod'
+                              imageNameSpace = 'rh-dev'
+                              srcTag = 'latest'
+                              destTag = 'promoteProd'
+                              serviceName = 'maingateway-service'
+                          }
+                          when {
+                            expression {
+                                env.userProdApproval == 'Approved' && (env.userInput == "Gateway" || env.userInput == 'All');
+                            }
+                          }
+                          steps {
+                              echo "Deploy to ${projectName} "
+                              //promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
+                              //promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                          }
+                      }
+                    stage('Pushing to prod - nodejsalert') {
                         environment {
                             projectName = 'rh-prod'
                             imageNameSpace = 'rh-dev'
                             srcTag = 'latest'
                             destTag = 'promoteProd'
-                            serviceName = 'maingateway-service'
+                            serviceName = 'nodejsalert-service'
                         }
-                        when {
-                          expression {
-                              env.userSelModule == 'Gateway' || env.userSelModule == 'All'
+                          when {
+                            expression {
+                                env.userProdApproval == 'Approved' && (env.userInput == "UI" || env.userInput == 'All');
+                            }
                           }
-                        }
                         steps {
                             echo "Deploy to ${projectName} "
-                            //promoteServiceSetup(openShiftHost, openShiftToken, 'maingateway-service', env.imageNameSpace, env.destTag, env.projectName)    
-                            //promoteService(env.imageNameSpace, env.projectName,'maingateway-service', env.srcTag, env.destTag)
+                            //promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
+                            //promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
                         }
                     }
-                  stage('Pushing to prod - nodejsalert') {
-                      environment {
-                          projectName = 'rh-prod'
-                          imageNameSpace = 'rh-dev'
-                          srcTag = 'latest'
-                          destTag = 'promoteProd'
-                          serviceName = 'nodejsalert-service'
-                      }
-                        when {
-                          expression {
-                              env.userSelModule == 'UI' || env.userSelModule == 'All'
-                          }
-                        }
-                      steps {
-                          echo "Deploy to ${projectName} "
-                          //promoteServiceSetup(openShiftHost, openShiftToken, 'nodejsalert-ui', env.imageNameSpace, env.destTag, env.projectName)    
-                          //promoteService(env.imageNameSpace, env.projectName, 'nodejsalert-ui', env.srcTag, env.destTag)
-                      }
+                }
+              }
+
+
+              def promoteServiceSetup(openShiftHost, openShiftToken, svcName,
+              imageNameSpace, tagName, projName) {
+                  try {
+                  sh """ 
+                      oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 2> /dev/null
+                      oc deploy ${svcName} --cancel -n ${projName} 2> /dev/null
+                      oc expose dc ${svcName} --port=8080 -n ${projName} 2> /dev/null
+                      oc expose svc ${svcName} --name=${svcName} -n ${projName} 2> /dev/null
+                  """
+                  } catch (Exception e) {
+                    echo "skip dc/svc/route creation related exception, the resource may already exist. " + e.getMessage();
                   }
               }
-            }
 
-            def promoteServiceSetup(openShiftHost, openShiftToken, svcName, imageNameSpace, tagName, projName) {
-                try {
-                sh """ 
-                    oc create dc ${svcName} --image=docker-registry.default.svc:5000/${imageNameSpace}/${svcName}:${tagName} -n ${projName} 2> /dev/null
-                    oc deploy ${svcName} --cancel -n ${projName} 2> /dev/null
-                    oc expose dc ${svcName} --port=8080 -n ${projName} 2> /dev/null
-                    oc expose svc ${svcName} --name=${svcName} -n ${projName} 2> /dev/null
-                """
-                } catch (Exception e) {
-                  echo "skip dc/svc/route creation related exception, the resource may already exist. " + e.getMessage();
-                }
-            }
-            def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
-                echo  "hello method out   ${projName} "
-                openshiftTag(namespace: imageNamespace,
-                              srcStream: svcName,
-                              srcTag: sourceTag,
-                              destStream: svcName,
-                              destTag: destinationTag)
+              def promoteService (imageNamespace, projName, svcName, sourceTag,
+              destinationTag) {
+                  echo  "hello method out   ${projName} "
+                  openshiftTag(namespace: imageNamespace,
+                                srcStream: svcName,
+                                srcTag: sourceTag,
+                                destStream: svcName,
+                                destTag: destinationTag)
 
-                openshiftDeploy(namespace: projName,
-                             deploymentConfig: svcName,
-                             waitTime: '300000')
-            }
+                  openshiftDeploy(namespace: projName,
+                               deploymentConfig: svcName,
+                               waitTime: '300000')
+              }
 
-            def build(folderName) {
-                sh """
 
-                cd ${folderName}
-                
-                mvn package -Dmaven.test.skip=true 
-                """
+              def build(folderName) {
+                  sh """
 
-            }
-            def deploy(folderName, projName, openShiftHost, openShiftToken, mysqlUser, mysqlPwd) {
-                sh """
-                cd ${folderName}
+                  cd ${folderName}
+                  
+                  mvn package -Dmaven.test.skip=true 
+                  """
 
-                oc project ${projName} 
+              }
 
-                mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
-                """
-            }
+              def deploy(folderName, projName, openShiftHost, openShiftToken,
+              mysqlUser, mysqlPwd) {
+                  sh """
+                  cd ${folderName}
+
+                  oc project ${projName} 
+
+                  mvn fabric8:deploy -Dmaven.test.skip=true -Dmysql-service-username=${mysqlUser} -Dmysql-service-password=${mysqlPwd}
+                  """
+              }
         env:
         - name: GIT_BRANCH
           value: ${GIT_BRANCH}
