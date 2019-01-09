@@ -48,15 +48,17 @@ objects:
                               }
                         } 
                         steps {
-                        script {
-                           env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
-                             parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
-                                description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
-                             ])
-                            println("user selected module" + env.userInput); //Use this value to branch to different logic if needed
-                            echo "--"
+                            script {
+                                timeout (time:180, unit:'SECONDS') {
+                                       env.userInput = input(id: 'userInput', message: 'Please select which module to bulid?',
+                                         parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', 
+                                            description:'describing choices', name:'nameChoice', choices: "Gateway\nFisUser\nFisAlert\nUI\nAll"]
+                                         ])
+                                        println("user selected module" + env.userInput); //Use this value to branch to different logic if needed
+                                        echo "--"
+                                }
+                            }
                         }
-                    }
                 
                   }     
                   stage ("source") {

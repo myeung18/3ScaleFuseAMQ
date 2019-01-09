@@ -19,7 +19,10 @@ objects:
       jenkinsPipelineStrategy:
         jenkinsfile: |-
             pipeline {   
-              agent any
+              //agent any
+              agent {
+                  label 'skopeo'
+              }
               stages{
                   stage ("source") {
                       steps {
