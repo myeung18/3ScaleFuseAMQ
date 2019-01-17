@@ -63,14 +63,14 @@ objects:
                         steps {
                             echo "Deploy ${MODULE_NAME} to rh-test "
                            promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, env.MODULE_NAME,params.IMAGE_REGISTRY, params.IMAGE_NAMESPACE, params.SERVICE_VERSION, params.TEST_PROJECT, params.MYSQL_USER, params.MYSQL_PWD)
-                           promoteService(params.IMAGE_NAMESPACE, params.TEST_PROJECT, env.MODULE_NAME)
+                           promoteService(params.IMAGE_NAMESPACE, params.TEST_PROJECT, env.MODULE_NAME + "-" + params.SERVICE_VERSION)
                         }
                     }
                     stage('Pushing to Prod') {
                         steps {
                             echo "Deploy ${MODULE_NAME} to rh-prod "
                             promoteServiceSetup(params.OPENSHIFT_HOST, params.OPENSHIFT_TOKEN, env.MODULE_NAME,params.IMAGE_REGISTRY, params.IMAGE_NAMESPACE, params.SERVICE_VERSION, params.PROD_PROJECT, params.MYSQL_USER, params.MYSQL_PWD)
-                            promoteService(params.IMAGE_NAMESPACE, params.PROD_PROJECT, env.MODULE_NAME)
+                            promoteService(params.IMAGE_NAMESPACE, params.PROD_PROJECT, env.MODULE_NAME + "-" + params.SERVICE_VERSION)
                         }
                     }
                 }
@@ -114,7 +114,7 @@ objects:
             def promoteService (imageNamespace, projName, svcName) {
                 echo "Deploying service ${projName} to ${svcName}"
                 openshiftDeploy(namespace: projName,
-                             deploymentConfig: svcName,
+                    deploymentConfig: svcName,
                              waitTime: '300000')
             }
 
