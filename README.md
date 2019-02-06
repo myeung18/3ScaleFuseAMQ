@@ -45,7 +45,6 @@ This demo contains below applications.
     • Node.js Web application https://github.com/redhatHameed/3ScaleFuseAMQ/tree/master/nodejsalert-ui
     • 3scale (Openshift on-premises) environment
 
-
 ## Automation of Applications in OpenShift
 ### Build and deploy with pipelines
 ***The application works under [OpenShift](https://www.okd.io/) or [Minishift](https://www.okd.io/minishift/)***
@@ -70,7 +69,7 @@ Setup `rh-dev`, `rh-test` and `rh-prod` OpenShift projects as the target environ
 ```
 ./setup/setup.sh
 ```
-If you ran the above setup.sh, the pipelines are automatically imported. In case you want to further customize the pipelines, please following the instructions below.
+If you run the above setup.sh, the pipelines are automatically imported. In case you want to further customize the pipelines, please follow the instructions below.
 
 You can also customize the pipelines by changing their parameters.  Different templates have different parameters but they are all listed below:
 ```
@@ -152,20 +151,3 @@ You should see the application and it is started with web front-end like this:
 
 ![Application View](images/application_launch_view.png "Application View")
 
-### Deploy with BlueGreen Deployment Strategy
-
-The following instructions show how to use Jenkins Pipeline to deploy `nodejsalert-ui` module with BlueGreen Deployment Strategy.
-
-We will work with `nodejsalert-ui-pipeline`.  Please login to Jenkins console in your OpenShift. Then you should see the pipeline job `rh-dev/nodejsalert-ui-pipeline`.  Click on it and next click on the `Build with Parameters`.  In the parameters input page, input the `SERVICE_VERSION`, check the checkbox for `BLUEGREEN_DEPLOYMENT`, and validate other parameters (default should work if you followed all the instructions in this page). Click on Build button to start the build.
-
-After the build is finished. You should be able to see `nodejsalert-ui-green` services in your `rh-test` as well as `rh-prod` OpenShift projects.  Now you can change your existing nodejsalert-ui route to point to this Green service so that you can verify your new deployment before completely rollout to production. 
-
-
-```
-#To change the route to use Green release
-oc patch route/nodejsalert-ui -p  '{"spec":{"to":{"name":"nodejsalert-ui-green"}}}' -n rh-test
-
-#To rollback the deployment (if necessary)
-oc patch route/nodejsalert-ui -p  '{"spec":{"to":{"name":"nodejsalert-ui"}}}' -n rh-test
-
-```
