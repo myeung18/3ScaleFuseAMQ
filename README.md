@@ -51,7 +51,9 @@ This demo contains below applications.
 
 The following instructions assuming that you are using OpenShift. But the same could be applied to Minishift as well.
 
-***Jenkins plugin setup & In-process Script Approval ***
+***Jenkins plugin setup & In-process Script Approval***
+
+Before running `3scale API publishing Pipeline`. please read the following instructions.
 
 If you have your 3Scale server with HTTPS enabled with self-signed certificate. Please install "skip-certificate-check" plugin so that Jenkins will skip validating HTTPS certificate.  Jenkins pipeline will fail without this plugin.  If you have CA signed certificate, you don't need to install this plugin.
 
