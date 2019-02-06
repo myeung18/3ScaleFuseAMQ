@@ -51,6 +51,15 @@ This demo contains below applications.
 
 The following instructions assuming that you are using OpenShift. But the same could be applied to Minishift as well.
 
+***Jenkins plugin setup & In-process Script Approval ***
+
+If you have your 3Scale server with HTTPS enabled with self-signed certificate. Please install "skip-certificate-check" plugin so that Jenkins will skip validating HTTPS certificate.  Jenkins pipeline will fail without this plugin.  If you have CA signed certificate, you don't need to install this plugin.
+
+To install "skip-certificate-check", go to "Manage Jenkins", "Manage Plugins", In Filter box, search, and select "skip-certificate-check" and click on "Install without restart".  In the `installing page`, check the "Restart Jenkins when Installation is complete and no jobs are running" checkbox.  We suggest you to use persistent storage enabled Jenkins pod so that you only need to do this installation once.
+
+
+
+
 Download the source codes from git repository by either forking, or simply cloning it. 
 
 ```
